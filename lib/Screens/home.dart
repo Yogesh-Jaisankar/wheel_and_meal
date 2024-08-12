@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:wheel_and_meal/Screens/activity.dart';
+import 'package:wheel_and_meal/Screens/grocery.dart';
+import 'package:wheel_and_meal/Screens/profile.dart';
+import 'package:wheel_and_meal/Screens/rider.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -18,6 +22,13 @@ class _HomeState extends State<Home> {
     Icons.person_outline_sharp
   ];
 
+  final List<Widget> pages = [
+    Rider(),
+    Grocery(),
+    Activity(),
+    Profile(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,42 +42,7 @@ class _HomeState extends State<Home> {
         ),
         backgroundColor: HexColor("#BB8FCE"),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Container(
-              height: 50,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                  color: Colors.black12,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                        height: 15,
-                        width: 15,
-                        decoration: BoxDecoration(
-                            color: Colors.lightGreen,
-                            borderRadius: BorderRadius.circular(50))),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                      child: TextField(
-                          decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintStyle: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: "Raleway"),
-                              hintText: "Enter Your Current Location"))),
-                ],
-              ),
-            ),
-          )
-        ],
-      ),
+      body: pages[selectedIndex], // Show the selected page
       bottomNavigationBar: Padding(
         padding: EdgeInsets.all(20),
         child: Material(
