@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 
@@ -118,7 +117,7 @@ class _RiderState extends State<Rider> {
         await _showDistanceAndTime(_currentLocation!, _searchedLocation!);
 
         _mapController.animateCamera(
-          CameraUpdate.newLatLngZoom(_searchedLocation!, 14.0),
+          CameraUpdate.newLatLngZoom(_searchedLocation!, 16.0),
         );
       } else {
         setState(() {
@@ -233,167 +232,186 @@ class _RiderState extends State<Rider> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          _loading
-              ? Center(child: CircularProgressIndicator())
-              : _currentLocation == null
-                  ? Center(
-                      child: Text(
-                          'Location permissions are required to display the map.'))
-                  : GoogleMap(
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      onMapCreated: (GoogleMapController controller) {
-                        _mapController = controller;
-                        if (_currentLocation != null) {
-                          _mapController.animateCamera(
-                            CameraUpdate.newLatLngZoom(_currentLocation!, 14.0),
-                          );
-                        }
-                      },
-                      initialCameraPosition: CameraPosition(
-                        target: _currentLocation ?? LatLng(0, 0),
-                        zoom: 14.0,
+        body: Stack(
+          children: [
+            _loading
+                ? Center(child: CircularProgressIndicator())
+                : _currentLocation == null
+                    ? Center(
+                        child: Text(
+                            'Location permissions are required to display the map.'))
+                    : GoogleMap(
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        onMapCreated: (GoogleMapController controller) {
+                          _mapController = controller;
+                          if (_currentLocation != null) {
+                            _mapController.animateCamera(
+                              CameraUpdate.newLatLngZoom(
+                                  _currentLocation!, 16.0),
+                            );
+                          }
+                        },
+                        initialCameraPosition: CameraPosition(
+                          target: _currentLocation ?? LatLng(0, 0),
+                          zoom: 14.0,
+                        ),
+                        markers: {
+                          if (_searchedLocation != null)
+                            Marker(
+                              markerId: MarkerId('searchedLocation'),
+                              position: _searchedLocation!,
+                              icon: BitmapDescriptor.defaultMarkerWithHue(
+                                  BitmapDescriptor.hueRed),
+                              infoWindow:
+                                  InfoWindow(title: 'Searched Location'),
+                            ),
+                        },
+                        polylines: _polylines,
                       ),
-                      markers: {
-                        if (_searchedLocation != null)
-                          Marker(
-                            markerId: MarkerId('searchedLocation'),
-                            position: _searchedLocation!,
-                            icon: BitmapDescriptor.defaultMarkerWithHue(
-                                BitmapDescriptor.hueRed),
-                            infoWindow: InfoWindow(title: 'Searched Location'),
-                          ),
-                      },
-                      polylines: _polylines,
+            Column(
+              children: [
+                SizedBox(height: 50),
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Container(
+                    height: 50,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Container(
-                  height: 50,
-                  width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        height: 15,
-                        width: 15,
-                        decoration: BoxDecoration(
-                            color: Colors.lightGreen,
-                            borderRadius: BorderRadius.circular(50)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontFamily: "Raleway",
-                          ),
-                          hintText: "Where to?",
+                    child: Row(children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Container(
+                          height: 15,
+                          width: 15,
+                          decoration: BoxDecoration(
+                              color: Colors.lightGreen,
+                              borderRadius: BorderRadius.circular(50)),
                         ),
                       ),
-                    ),
-                  ]),
-                ),
-              ),
-              if (_searchController.text.isNotEmpty && _suggestions.isNotEmpty)
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: SizedBox(
-                    height: 200,
-                    child: _suggestionsLoading
-                        ? Center(child: CircularProgressIndicator())
-                        : ListView.builder(
-                            itemCount: _suggestions.length,
-                            itemBuilder: (context, index) {
-                              final suggestion = _suggestions[index];
-                              return ListTile(
-                                title: Text(suggestion['description']),
-                                onTap: () async {
-                                  await _fetchPlaceDetails(
-                                      suggestion['place_id']);
-                                  setState(() {
-                                    _suggestions = [];
-                                  });
-                                },
-                              );
-                            },
+                      Expanded(
+                        child: TextField(
+                          style: TextStyle(color: Colors.white),
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "Raleway",
+                            ),
+                            hintText: "Where to?",
                           ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.arrow_upward,
+                          color: Colors.white54,
+                        ),
+                      )
+                    ]),
                   ),
                 ),
-            ],
-          ),
-
-          // container to show distance and time
-          if (_showRouteInfo)
-            Positioned(
-              bottom: 5,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 50,
-                  width: 150,
-                  decoration: BoxDecoration(
-                      color: HexColor("#BB8FCE"),
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "$_distance",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
+                if (_searchController.text.isNotEmpty &&
+                    _suggestions.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      Text(
-                        "$_duration",
-                        style: TextStyle(
-                            color: Colors.black,
-                            //fontWeight: FontWeight.bold,
-                            fontSize: 15),
-                      )
-                    ],
+                      child: SizedBox(
+                        height: 200,
+                        child: _suggestionsLoading
+                            ? Center(child: CircularProgressIndicator())
+                            : ListView.builder(
+                                itemCount: _suggestions.length,
+                                itemBuilder: (context, index) {
+                                  final suggestion = _suggestions[index];
+                                  return ListTile(
+                                    title: Text(suggestion['description']),
+                                    onTap: () async {
+                                      await _fetchPlaceDetails(
+                                          suggestion['place_id']);
+                                      setState(() {
+                                        _suggestions = [];
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                    ),
+                  )
+              ],
+            ),
+
+            // container to show distance and time
+            if (_showRouteInfo)
+              Positioned(
+                bottom: 80,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Container(
+                    height: 50,
+                    width: 150,
+                    decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "$_distance",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18),
+                        ),
+                        Text(
+                          "$_duration",
+                          style: TextStyle(
+                              color: Colors.white,
+                              //fontWeight: FontWeight.bold,
+                              fontSize: 15),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        enableFeedback: true,
-        backgroundColor: HexColor("#BB8FCE"),
-        onPressed: _recenterMap,
-        child: Icon(Icons.my_location, color: Colors.black),
-      ),
-    );
+          ],
+        ),
+        floatingActionButton: Padding(
+          padding: EdgeInsets.only(bottom: 50, right: 10),
+          child: FloatingActionButton(
+            enableFeedback: true,
+            backgroundColor: Colors.black87,
+            onPressed: _recenterMap,
+            child: Icon(Icons.my_location, color: Colors.white),
+          ),
+        ));
   }
 
   Future<void> _recenterMap() async {
