@@ -191,7 +191,7 @@ class _RiderState extends State<Rider> {
             Polyline(
               polylineId: PolylineId('route'),
               points: points,
-              color: Colors.blue,
+              color: Colors.black87,
               width: 5,
             ),
           );
