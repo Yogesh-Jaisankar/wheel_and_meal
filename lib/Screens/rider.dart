@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
@@ -87,7 +90,7 @@ class _RiderState extends State<Rider> {
     });
 
     final response = await http.get(Uri.parse(
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$pattern&key=$_apiKey'));
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$pattern&components=country:IN&key=$_apiKey'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -115,12 +118,30 @@ class _RiderState extends State<Rider> {
       });
 
       if (_currentLocation != null && _searchedLocation != null) {
-        await _showRoute(_currentLocation!, _searchedLocation!);
-        await _showDistanceAndTime(_currentLocation!, _searchedLocation!);
-
-        _mapController.animateCamera(
-          CameraUpdate.newLatLngZoom(_searchedLocation!, 16.0),
+        double distanceInMeters = Geolocator.distanceBetween(
+          _currentLocation!.latitude,
+          _currentLocation!.longitude,
+          _searchedLocation!.latitude,
+          _searchedLocation!.longitude,
         );
+
+        if (distanceInMeters <= 50000) {
+          // 50km in meters
+          await _showRoute(_currentLocation!, _searchedLocation!);
+          await _showDistanceAndTime(_currentLocation!, _searchedLocation!);
+
+          _mapController.animateCamera(
+            CameraUpdate.newLatLngZoom(_searchedLocation!, 16.0),
+          );
+        } else {
+          Fluttertoast.showToast(
+            msg: "Selected place is too far away.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+          );
+        }
       } else {
         setState(() {
           _showRouteInfo = false; // Hide route info if locations are not set
@@ -242,34 +263,44 @@ class _RiderState extends State<Rider> {
                     ? Center(
                         child: Text(
                             'Location permissions are required to display the map.'))
-                    : GoogleMap(
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: false,
-                        onMapCreated: (GoogleMapController controller) {
-                          _mapController = controller;
-                          if (_currentLocation != null) {
-                            _mapController.animateCamera(
-                              CameraUpdate.newLatLngZoom(
-                                  _currentLocation!, 16.0),
-                            );
-                          }
+                    : GestureDetector(
+                        onTap: () {
+                          //close the suggestion on if i touch map
+                          HapticFeedback.heavyImpact();
+                          setState(() {
+                            _suggestions.clear();
+                          });
+                          FocusScope.of(context).unfocus();
                         },
-                        initialCameraPosition: CameraPosition(
-                          target: _currentLocation ?? LatLng(0, 0),
-                          zoom: 14.0,
+                        child: GoogleMap(
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: false,
+                          onMapCreated: (GoogleMapController controller) {
+                            _mapController = controller;
+                            if (_currentLocation != null) {
+                              _mapController.animateCamera(
+                                CameraUpdate.newLatLngZoom(
+                                    _currentLocation!, 16.0),
+                              );
+                            }
+                          },
+                          initialCameraPosition: CameraPosition(
+                            target: _currentLocation ?? LatLng(0, 0),
+                            zoom: 14.0,
+                          ),
+                          markers: {
+                            if (_searchedLocation != null)
+                              Marker(
+                                markerId: MarkerId('searchedLocation'),
+                                position: _searchedLocation!,
+                                icon: BitmapDescriptor.defaultMarkerWithHue(
+                                    BitmapDescriptor.hueRed),
+                                infoWindow:
+                                    InfoWindow(title: 'Searched Location'),
+                              ),
+                          },
+                          polylines: _polylines,
                         ),
-                        markers: {
-                          if (_searchedLocation != null)
-                            Marker(
-                              markerId: MarkerId('searchedLocation'),
-                              position: _searchedLocation!,
-                              icon: BitmapDescriptor.defaultMarkerWithHue(
-                                  BitmapDescriptor.hueRed),
-                              infoWindow:
-                                  InfoWindow(title: 'Searched Location'),
-                            ),
-                        },
-                        polylines: _polylines,
                       ),
             Column(
               children: [
@@ -344,26 +375,63 @@ class _RiderState extends State<Rider> {
                         ],
                       ),
                       child: SizedBox(
-                        height: 200,
-                        child: _suggestionsLoading
-                            ? Center(child: CircularProgressIndicator())
-                            : ListView.builder(
-                                itemCount: _suggestions.length,
-                                itemBuilder: (context, index) {
-                                  final suggestion = _suggestions[index];
-                                  return ListTile(
-                                    title: Text(suggestion['description']),
-                                    onTap: () async {
-                                      await _fetchPlaceDetails(
-                                          suggestion['place_id']);
-                                      setState(() {
-                                        _suggestions = [];
-                                      });
-                                    },
-                                  );
-                                },
-                              ),
-                      ),
+                          height: 200,
+                          child: _suggestionsLoading
+                              ? Center(child: CircularProgressIndicator())
+                              : ListView.builder(
+                                  itemCount: _suggestions.length,
+                                  itemBuilder: (context, index) {
+                                    final suggestion = _suggestions[index];
+                                    return Container(
+                                      margin: EdgeInsets.only(
+                                          left: 5,
+                                          right: 5,
+                                          bottom: 10), // Adjust margins
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.2),
+                                            spreadRadius: 2,
+                                            blurRadius: 5,
+                                            offset: Offset(0,
+                                                3), // Changes position of shadow
+                                          ),
+                                        ],
+                                      ),
+                                      child: ListTile(
+                                        leading: Icon(Icons.location_on,
+                                            color: Colors.redAccent),
+                                        title: Text(
+                                          suggestion['description'],
+                                          style: TextStyle(
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: "Raleway",
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          'Tap to select',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontFamily: "Raleway",
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        onTap: () async {
+                                          FocusScope.of(context).unfocus();
+                                          await _fetchPlaceDetails(
+                                              suggestion['place_id']);
+                                          setState(() {
+                                            _suggestions = [];
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  },
+                                )),
                     ),
                   )
               ],
