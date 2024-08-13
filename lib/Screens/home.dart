@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:wheel_and_meal/Screens/activity.dart';
 import 'package:wheel_and_meal/Screens/grocery.dart';
 import 'package:wheel_and_meal/Screens/profile.dart';
@@ -32,16 +31,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "WHEEL  AND  MEAL",
-          style: TextStyle(
-              color: Colors.black87,
-              fontFamily: "Raleway",
-              fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: HexColor("#BB8FCE"),
-      ),
       body: pages[selectedIndex], // Show the selected page
       bottomNavigationBar: Padding(
         padding: EdgeInsets.all(20),

@@ -388,6 +388,7 @@ class _RiderState extends State<Rider> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        enableFeedback: true,
         backgroundColor: HexColor("#BB8FCE"),
         onPressed: _recenterMap,
         child: Icon(Icons.my_location, color: Colors.black),
