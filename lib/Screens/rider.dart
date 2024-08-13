@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -38,7 +37,17 @@ class _RiderState extends State<Rider> {
     super.initState();
     _getLocation();
     _searchController.addListener(() {
-      _fetchSuggestions(_searchController.text);
+      if (_searchController.text.isEmpty) {
+        setState(() {
+          _suggestions = [];
+          _polylines.clear();
+          _distance = '';
+          _duration = '';
+          _showRouteInfo = false;
+        });
+      } else {
+        _fetchSuggestions(_searchController.text);
+      }
     });
   }
 
@@ -104,52 +113,66 @@ class _RiderState extends State<Rider> {
   }
 
   Future<void> _fetchPlaceDetails(String placeId) async {
-    final response = await http.get(Uri.parse(
-        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_apiKey'));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final location = data['result']['geometry']['location'];
-      final lat = location['lat'];
-      final lng = location['lng'];
-
+    try {
+      // Clear previous route info
       setState(() {
-        _searchedLocation = LatLng(lat, lng);
+        _polylines.clear();
+        _distance = '';
+        _duration = '';
+        _showRouteInfo = false;
       });
 
-      if (_currentLocation != null && _searchedLocation != null) {
-        double distanceInMeters = Geolocator.distanceBetween(
-          _currentLocation!.latitude,
-          _currentLocation!.longitude,
-          _searchedLocation!.latitude,
-          _searchedLocation!.longitude,
-        );
+      final response = await http.get(Uri.parse(
+          'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_apiKey'));
 
-        if (distanceInMeters <= 50000) {
-          // 50km in meters
-          await _showRoute(_currentLocation!, _searchedLocation!);
-          await _showDistanceAndTime(_currentLocation!, _searchedLocation!);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final location = data['result']['geometry']['location'];
+        final lat = location['lat'];
+        final lng = location['lng'];
 
-          _mapController.animateCamera(
-            CameraUpdate.newLatLngZoom(_searchedLocation!, 16.0),
+        setState(() {
+          _searchedLocation = LatLng(lat, lng);
+        });
+
+        if (_currentLocation != null && _searchedLocation != null) {
+          double distanceInMeters = Geolocator.distanceBetween(
+            _currentLocation!.latitude,
+            _currentLocation!.longitude,
+            _searchedLocation!.latitude,
+            _searchedLocation!.longitude,
           );
+
+          if (distanceInMeters <= 50000) {
+            await _showRoute(_currentLocation!, _searchedLocation!);
+            await _showDistanceAndTime(_currentLocation!, _searchedLocation!);
+
+            _mapController.animateCamera(
+              CameraUpdate.newLatLngZoom(_searchedLocation!, 16.0),
+            );
+          } else {
+            _showError("Selected place is too far away.");
+          }
         } else {
-          Fluttertoast.showToast(
-            msg: "Selected place is too far away.",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-            backgroundColor: Colors.black,
-            textColor: Colors.white,
-          );
+          setState(() {
+            _showRouteInfo = false; // Hide route info if locations are not set
+          });
         }
       } else {
-        setState(() {
-          _showRouteInfo = false; // Hide route info if locations are not set
-        });
+        _showError('Failed to load place details');
       }
-    } else {
-      throw Exception('Failed to load place details');
+    } catch (e) {
+      _showError('An error occurred while fetching place details');
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   Future<void> _showRoute(LatLng origin, LatLng destination) async {
@@ -422,11 +445,12 @@ class _RiderState extends State<Rider> {
                                         ),
                                         onTap: () async {
                                           FocusScope.of(context).unfocus();
+                                          setState(() {
+                                            _suggestions
+                                                .clear(); // Clear suggestions
+                                          });
                                           await _fetchPlaceDetails(
                                               suggestion['place_id']);
-                                          setState(() {
-                                            _suggestions = [];
-                                          });
                                         },
                                       ),
                                     );
