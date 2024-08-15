@@ -11,9 +11,9 @@ import 'package:wheel_and_meal/Screens/dest_search.dart';
 import 'package:wheel_and_meal/Screens/start_search.dart';
 
 class Rider extends StatefulWidget {
-  final String? dropAddress;
-  final LatLng? dropLatLng;
-  const Rider({Key? key, this.dropAddress, this.dropLatLng}) : super(key: key);
+  const Rider({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<Rider> createState() => _RiderState();

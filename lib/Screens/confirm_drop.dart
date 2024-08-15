@@ -93,10 +93,7 @@ class _ConfirmDropState extends State<ConfirmDrop> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Rider(
-          dropAddress: _address,
-          dropLatLng: _marker.position,
-        ),
+        builder: (context) => Rider(),
       ),
     );
   }
