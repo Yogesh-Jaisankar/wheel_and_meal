@@ -53,6 +53,8 @@ class _RiderState extends State<Rider> {
     });
   }
 
+  String? _currentLocationAddress;
+
   Future<void> _getLocation() async {
     Location location = Location();
 
@@ -82,8 +84,12 @@ class _RiderState extends State<Rider> {
     }
 
     final locData = await location.getLocation();
+    final currentCoordinates = LatLng(locData.latitude!, locData.longitude!);
+    final address = await _getCurrentAddress(currentCoordinates);
+
     setState(() {
-      _currentLocation = LatLng(locData.latitude!, locData.longitude!);
+      _currentLocation = currentCoordinates;
+      _currentLocationAddress = address; // Store the address
       _loading = false;
     });
   }
@@ -241,6 +247,19 @@ class _RiderState extends State<Rider> {
     }
   }
 
+  Future<String> _getCurrentAddress(LatLng coordinates) async {
+    final response = await http.get(Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${coordinates.latitude},${coordinates.longitude}&key=$_apiKey'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final address = data['results'][0]['formatted_address'];
+      return address;
+    } else {
+      throw Exception('Failed to load address');
+    }
+  }
+
   List<LatLng> _decodePolyline(String polyline) {
     List<LatLng> points = [];
     int index = 0;
@@ -365,7 +384,7 @@ class _RiderState extends State<Rider> {
                           ),
                         ),
                         Text(
-                          "Current Location",
+                          _currentLocationAddress ?? "Fetching Location...",
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
