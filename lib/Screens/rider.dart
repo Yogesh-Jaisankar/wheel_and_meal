@@ -330,7 +330,7 @@ class _RiderState extends State<Rider> {
             Column(
               children: [
                 SizedBox(height: 50),
-                // start location
+                // pick up location
                 GestureDetector(
                   onTap: () {
                     Navigator.push(context,
