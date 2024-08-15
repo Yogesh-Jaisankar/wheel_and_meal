@@ -7,7 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:wheel_and_meal/Screens/confirm_drop.dart';
 
 class DestSearch extends StatefulWidget {
-  const DestSearch({super.key});
+  final LatLng selectedLocation;
+  final String pickupAddress;
+  const DestSearch(
+      {super.key, required this.selectedLocation, required this.pickupAddress});
 
   @override
   State<DestSearch> createState() => _DestSearchState();
@@ -222,6 +225,8 @@ class _DestSearchState extends State<DestSearch> {
                                     location:
                                         LatLng(details['lat'], details['lng']),
                                     placeName: description,
+                                    selectedLocation: widget.selectedLocation,
+                                    pickupAddress: widget.pickupAddress,
                                   ),
                                 ),
                               );

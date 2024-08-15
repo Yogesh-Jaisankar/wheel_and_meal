@@ -8,11 +8,15 @@ import 'package:wheel_and_meal/Screens/rider.dart';
 class ConfirmDrop extends StatefulWidget {
   final LatLng location;
   final String placeName;
+  final LatLng selectedLocation;
+  final String pickupAddress;
 
   const ConfirmDrop({
     super.key,
     required this.location,
     required this.placeName,
+    required this.selectedLocation,
+    required this.pickupAddress,
   });
 
   @override
@@ -89,15 +93,6 @@ class _ConfirmDropState extends State<ConfirmDrop> {
     });
   }
 
-  void _confirmDrop() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Rider(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,8 +163,15 @@ class _ConfirmDropState extends State<ConfirmDrop> {
                 GestureDetector(
                   onTap: () {
                     print('Selected Location: ${_marker.position}');
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Rider()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Rider(
+                                  selectedLocation: widget.selectedLocation,
+                                  pickupAddress: widget.pickupAddress,
+                                  dropLOcation: _marker.position,
+                                  dropAddress: _address,
+                                )));
                   },
                   child: Container(
                     height: 50,

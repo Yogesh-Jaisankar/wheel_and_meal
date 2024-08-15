@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wheel_and_meal/Screens/activity.dart';
 import 'package:wheel_and_meal/Screens/grocery.dart';
 import 'package:wheel_and_meal/Screens/profile.dart';
@@ -26,7 +27,12 @@ class _HomeState extends State<Home> {
   ];
 
   final List<Widget> pages = [
-    Rider(),
+    Rider(
+      selectedLocation: LatLng(1, 1),
+      pickupAddress: '',
+      dropAddress: '',
+      dropLOcation: LatLng(1, 1),
+    ),
     Restaurants(),
     Grocery(),
     Activity(),

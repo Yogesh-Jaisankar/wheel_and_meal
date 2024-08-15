@@ -11,8 +11,16 @@ import 'package:wheel_and_meal/Screens/dest_search.dart';
 import 'package:wheel_and_meal/Screens/start_search.dart';
 
 class Rider extends StatefulWidget {
+  final LatLng selectedLocation;
+  final String pickupAddress;
+  final String dropAddress;
+  final LatLng dropLOcation;
   const Rider({
     Key? key,
+    required this.selectedLocation,
+    required this.pickupAddress,
+    required this.dropAddress,
+    required this.dropLOcation,
   }) : super(key: key);
 
   @override
@@ -302,10 +310,34 @@ class _RiderState extends State<Rider> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           _loading
-              ? Center(child: CircularProgressIndicator())
+              ? Center(
+                  child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          "assets/icons/wm.png",
+                          height: 80,
+                          width: 80,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      "Loading...",
+                      style: TextStyle(
+                          fontFamily: "Raleway",
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ))
               : _currentLocation == null
                   ? Center(
                       child: Text(
@@ -389,8 +421,11 @@ class _RiderState extends State<Rider> {
                         ),
                         Expanded(
                           child: Text(
-                            _currentLocationAddress ?? "Fetching Location...",
+                            widget.pickupAddress.isNotEmpty
+                                ? widget.pickupAddress
+                                : "Pick Up From?",
                             style: TextStyle(
+                              overflow: TextOverflow.ellipsis,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontFamily: "Raleway",
@@ -404,8 +439,13 @@ class _RiderState extends State<Rider> {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => DestSearch()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DestSearch(
+                                selectedLocation: widget.selectedLocation,
+                                pickupAddress: widget.pickupAddress,
+                              )));
                 },
                 child: Padding(
                   padding:
@@ -437,12 +477,17 @@ class _RiderState extends State<Rider> {
                             ),
                           ),
                         ),
-                        Text(
-                          "Where to?",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: "Raleway",
+                        Expanded(
+                          child: Text(
+                            widget.dropAddress.isNotEmpty
+                                ? widget.dropAddress
+                                : "Where to?",
+                            style: TextStyle(
+                              overflow: TextOverflow.ellipsis,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "Raleway",
+                            ),
                           ),
                         ),
                       ],

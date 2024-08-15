@@ -160,8 +160,15 @@ class _ConfirmPickupState extends State<ConfirmPickup> {
                 GestureDetector(
                   onTap: () {
                     print('Selected Location: ${_marker.position}');
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Rider()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Rider(
+                                  selectedLocation: _marker.position,
+                                  pickupAddress: _address,
+                                  dropAddress: '',
+                                  dropLOcation: LatLng(1, 1),
+                                )));
                   },
                   child: Container(
                     height: 50,

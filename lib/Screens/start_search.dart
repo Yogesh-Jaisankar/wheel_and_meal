@@ -19,6 +19,7 @@ class _StartSearchState extends State<StartSearch> {
   final String _googleApiKey = 'AIzaSyA8njHoIZmi21e6roCJP41OsvGLAnIG6Ug';
   List<dynamic> _suggestions = [];
   Position? _currentPosition;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -64,6 +65,10 @@ class _StartSearchState extends State<StartSearch> {
   Future<void> _getSuggestions(String input) async {
     if (input.isEmpty || _currentPosition == null) return;
 
+    setState(() {
+      _isLoading = true; // Set loading state to true
+    });
+
     final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&key=$_googleApiKey&location=${_currentPosition!.latitude},${_currentPosition!.longitude}&radius=50000');
 
@@ -79,6 +84,10 @@ class _StartSearchState extends State<StartSearch> {
     } else {
       print('Error fetching suggestions: ${response.body}');
     }
+
+    setState(() {
+      _isLoading = false; // Set loading state to false
+    });
   }
 
   Future<double> _calculateDistance(double lat, double lng) async {
@@ -125,126 +134,154 @@ class _StartSearchState extends State<StartSearch> {
           color: Colors.white, // Set the back button color to white
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Container(
-              height: 50,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(),
-              ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                      height: 15,
-                      width: 15,
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                    ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Container(
+                  height: 50,
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(),
                   ),
-                  Expanded(
-                    child: TextField(
-                      controller: _locationController,
-                      onChanged: (value) {
-                        _getSuggestions(value);
-                      },
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: "Raleway",
-                      ),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Search for your place...",
-                        hintStyle: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "Raleway",
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Container(
+                          height: 15,
+                          width: 15,
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
                         ),
                       ),
+                      Expanded(
+                        child: TextField(
+                          controller: _locationController,
+                          onChanged: (value) {
+                            _getSuggestions(value);
+                          },
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: "Raleway",
+                          ),
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: "Search for your place...",
+                            hintStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "Raleway",
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _suggestions.length,
+                  itemBuilder: (context, index) {
+                    var suggestion = _suggestions[index];
+                    String description =
+                        suggestion['description'] ?? 'No description';
+                    String placeId = suggestion['place_id'];
+                    return FutureBuilder(
+                      future: _getPlaceDetailsAndDistance(placeId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Container(); // Empty container while waiting
+                        } else if (snapshot.hasError) {
+                          return ListTile(
+                            title: Text('Error loading suggestion'),
+                          );
+                        } else {
+                          final details = snapshot.data as Map<String, dynamic>;
+                          double distance = details['distance'];
+                          String formattedDistance =
+                              (distance / 1000).toStringAsFixed(2); // in km
+
+                          if (distance <= 100000) {
+                            // 100 km in meters
+                            return Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: ListTile(
+                                leading: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      color: Colors.red,
+                                      size: 20,
+                                    ),
+                                    Text('$formattedDistance km')
+                                  ],
+                                ),
+                                title: Text(
+                                  description,
+                                  style: TextStyle(
+                                      overflow: TextOverflow.fade,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
+                                onTap: () async {
+                                  // Handle tap on the suggestion
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ConfirmPickup(
+                                        location: LatLng(
+                                            details['lat'], details['lng']),
+                                        placeName: description,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            return Container(); // Return an empty container if the distance is greater than 100 km
+                          }
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          if (_isLoading)
+            Center(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      "assets/icons/wm.png",
+                      height: 80,
+                      width: 80,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _suggestions.length,
-              itemBuilder: (context, index) {
-                var suggestion = _suggestions[index];
-                String description =
-                    suggestion['description'] ?? 'No description';
-                String placeId = suggestion['place_id'];
-                return FutureBuilder(
-                  future: _getPlaceDetailsAndDistance(placeId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return ListTile(
-                        title: Text('...'),
-                      );
-                    } else if (snapshot.hasError) {
-                      return ListTile(
-                        title: Text('Error loading suggestion'),
-                      );
-                    } else {
-                      final details = snapshot.data as Map<String, dynamic>;
-                      double distance = details['distance'];
-                      String formattedDistance =
-                          (distance / 1000).toStringAsFixed(2); // in km
-
-                      if (distance <= 100000) {
-                        // 100 km in meters
-                        return Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: ListTile(
-                            leading: Column(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
-                                  size: 20,
-                                ),
-                                Text('$formattedDistance km')
-                              ],
-                            ),
-                            title: Text(
-                              description,
-                              style: TextStyle(
-                                  overflow: TextOverflow.fade,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14),
-                            ),
-                            onTap: () async {
-                              // Handle tap on the suggestion
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ConfirmPickup(
-                                    location:
-                                        LatLng(details['lat'], details['lng']),
-                                    placeName: description,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      } else {
-                        return Container(); // Return an empty container if the distance is greater than 100 km
-                      }
-                    }
-                  },
-                );
-              },
-            ),
-          ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Loading...",
+                  style: TextStyle(
+                      fontFamily: "Raleway",
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                )
+              ],
+            )),
         ],
       ),
     );
