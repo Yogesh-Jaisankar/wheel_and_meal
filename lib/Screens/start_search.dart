@@ -35,13 +35,6 @@ class _StartSearchState extends State<StartSearch> {
       setState(() {
         _currentPosition = position;
       });
-
-      String address =
-          await _getAddressFromLatLng(position.latitude, position.longitude);
-
-      setState(() {
-        _locationController.text = address;
-      });
     } catch (e) {
       print("Error fetching location: $e");
     }
@@ -187,71 +180,128 @@ class _StartSearchState extends State<StartSearch> {
               ),
               Expanded(
                 child: ListView.builder(
-                  itemCount: _suggestions.length,
+                  itemCount: _suggestions.length +
+                      1, // Add 1 for the current location tile
                   itemBuilder: (context, index) {
-                    var suggestion = _suggestions[index];
-                    String description =
-                        suggestion['description'] ?? 'No description';
-                    String placeId = suggestion['place_id'];
-                    return FutureBuilder(
-                      future: _getPlaceDetailsAndDistance(placeId),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Container(); // Empty container while waiting
-                        } else if (snapshot.hasError) {
-                          return ListTile(
-                            title: Text('Error loading suggestion'),
-                          );
-                        } else {
-                          final details = snapshot.data as Map<String, dynamic>;
-                          double distance = details['distance'];
-                          String formattedDistance =
-                              (distance / 1000).toStringAsFixed(2); // in km
-
-                          if (distance <= 100000) {
-                            // 100 km in meters
-                            return Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: ListTile(
-                                leading: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.location_on,
-                                      color: Colors.red,
-                                      size: 20,
-                                    ),
-                                    Text('$formattedDistance km')
-                                  ],
+                    if (index == 0) {
+                      // Current location tile
+                      return Container(
+                        height: 70, // Fixed height for the tile
+                        padding: const EdgeInsets.all(5.0),
+                        child: ListTile(
+                          leading: Container(
+                            height: 60,
+                            width: 50,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.gps_fixed,
+                                  color: Colors.green,
+                                  size: 20,
                                 ),
-                                title: Text(
-                                  description,
-                                  style: TextStyle(
-                                      overflow: TextOverflow.fade,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
+                              ],
+                            ),
+                          ),
+                          title: Text(
+                            'Current Location',
+                            style: TextStyle(
+                                fontFamily: "Raleway",
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14),
+                          ),
+                          onTap: () async {
+                            if (_currentPosition != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ConfirmPickup(
+                                    location: LatLng(_currentPosition!.latitude,
+                                        _currentPosition!.longitude),
+                                    placeName: 'Current Location',
+                                  ),
                                 ),
-                                onTap: () async {
-                                  // Handle tap on the suggestion
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ConfirmPickup(
-                                        location: LatLng(
-                                            details['lat'], details['lng']),
-                                        placeName: description,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
+                              );
+                            }
+                          },
+                        ),
+                      );
+                    } else {
+                      var suggestion = _suggestions[index - 1];
+                      String description =
+                          suggestion['description'] ?? 'No description';
+                      String placeId = suggestion['place_id'];
+                      return FutureBuilder(
+                        future: _getPlaceDetailsAndDistance(placeId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container(); // Empty container while waiting
+                          } else if (snapshot.hasError) {
+                            return Container(); // Handle error gracefully
                           } else {
-                            return Container(); // Return an empty container if the distance is greater than 100 km
+                            final details =
+                                snapshot.data as Map<String, dynamic>;
+                            double distance = details['distance'];
+                            String formattedDistance =
+                                (distance / 1000).toStringAsFixed(2); // in km
+
+                            if (distance <= 100000) {
+                              // 100 km in meters
+                              return Container(
+                                height: 70, // Fixed height for the tile
+                                padding: const EdgeInsets.all(5.0),
+                                child: ListTile(
+                                  leading: Container(
+                                    height: 60,
+                                    width: 50,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          color: Colors.red,
+                                          size: 20,
+                                        ),
+                                        Text(
+                                          '$formattedDistance\nkm',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 12),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  title: Text(
+                                    description,
+                                    style: TextStyle(
+                                        fontFamily: "Raleway",
+                                        overflow: TextOverflow.ellipsis,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14),
+                                  ),
+                                  onTap: () async {
+                                    // Handle tap on the suggestion
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ConfirmPickup(
+                                          location: LatLng(
+                                              details['lat'], details['lng']),
+                                          placeName: description,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            } else {
+                              return Container(); // Return an empty container if the distance is greater than 100 km
+                            }
                           }
-                        }
-                      },
-                    );
+                        },
+                      );
+                    }
                   },
                 ),
               ),
@@ -259,29 +309,28 @@ class _StartSearchState extends State<StartSearch> {
           ),
           if (_isLoading)
             Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      "assets/icons/wm.png",
-                      height: 80,
-                      width: 80,
+              child: Column(
+                children: [
+                  Container(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        "assets/icons/wm.png",
+                        height: 80,
+                        width: 80,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  "Loading...",
-                  style: TextStyle(
-                      fontFamily: "Raleway",
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold),
-                )
-              ],
-            )),
+                  Text(
+                    "Loading",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: "Raleway"),
+                  )
+                ],
+              ),
+            ),
         ],
       ),
     );

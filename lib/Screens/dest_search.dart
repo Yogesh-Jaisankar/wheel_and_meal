@@ -9,8 +9,12 @@ import 'package:wheel_and_meal/Screens/confirm_drop.dart';
 class DestSearch extends StatefulWidget {
   final LatLng selectedLocation;
   final String pickupAddress;
-  const DestSearch(
-      {super.key, required this.selectedLocation, required this.pickupAddress});
+
+  const DestSearch({
+    super.key,
+    required this.selectedLocation,
+    required this.pickupAddress,
+  });
 
   @override
   State<DestSearch> createState() => _DestSearchState();
@@ -21,6 +25,7 @@ class _DestSearchState extends State<DestSearch> {
   final String _googleApiKey = 'AIzaSyA8njHoIZmi21e6roCJP41OsvGLAnIG6Ug';
   List<dynamic> _suggestions = [];
   Position? _currentPosition;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -30,34 +35,31 @@ class _DestSearchState extends State<DestSearch> {
 
   Future<void> _setCurrentLocation() async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
 
       setState(() {
         _currentPosition = position;
+        _isLoading = false;
       });
     } catch (e) {
       print("Error fetching location: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
-  }
-
-  Future<String> _getAddressFromLatLng(double lat, double lng) async {
-    final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=$_googleApiKey');
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> data = json.decode(response.body);
-      if (data['results'] != null && data['results'].isNotEmpty) {
-        return data['results'][0]['formatted_address'];
-      }
-    }
-    return "Address not found";
   }
 
   Future<void> _getSuggestions(String input) async {
     if (input.isEmpty || _currentPosition == null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
 
     final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&key=$_googleApiKey&location=${_currentPosition!.latitude},${_currentPosition!.longitude}&radius=50000');
@@ -69,10 +71,14 @@ class _DestSearchState extends State<DestSearch> {
       if (data['predictions'] != null) {
         setState(() {
           _suggestions = data['predictions'];
+          _isLoading = false;
         });
       }
     } else {
       print('Error fetching suggestions: ${response.body}');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -169,79 +175,112 @@ class _DestSearchState extends State<DestSearch> {
               ),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _suggestions.length,
-              itemBuilder: (context, index) {
-                var suggestion = _suggestions[index];
-                String description =
-                    suggestion['description'] ?? 'No description';
-                String placeId = suggestion['place_id'];
-                return FutureBuilder(
-                  future: _getPlaceDetailsAndDistance(placeId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return ListTile(
-                        title: Text('...'),
-                      );
-                    } else if (snapshot.hasError) {
-                      return ListTile(
-                        title: Text('Error loading suggestion'),
-                      );
-                    } else {
-                      final details = snapshot.data as Map<String, dynamic>;
-                      double distance = details['distance'];
-                      String formattedDistance =
-                          (distance / 1000).toStringAsFixed(2); // in km
+          _isLoading
+              ? Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset(
+                            "assets/icons/wm.png",
+                            height: 80,
+                            width: 80,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "Loading",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: "Raleway"),
+                      )
+                    ],
+                  ), // Loading indicator
+                )
+              : Expanded(
+                  child: ListView.builder(
+                    itemCount: _suggestions.length,
+                    itemBuilder: (context, index) {
+                      var suggestion = _suggestions[index];
+                      String description =
+                          suggestion['description'] ?? 'No description';
+                      String placeId = suggestion['place_id'];
+                      return FutureBuilder(
+                        future: _getPlaceDetailsAndDistance(placeId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container(); // Empty container while waiting
+                          } else if (snapshot.hasError) {
+                            return Container(); // Handle error gracefully
+                          } else {
+                            final details =
+                                snapshot.data as Map<String, dynamic>;
+                            double distance = details['distance'];
+                            String formattedDistance =
+                                (distance / 1000).toStringAsFixed(2); // in km
 
-                      if (distance <= 100000) {
-                        // 100 km in meters
-                        return Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: ListTile(
-                            leading: Column(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
-                                  size: 20,
-                                ),
-                                Text('$formattedDistance km')
-                              ],
-                            ),
-                            title: Text(
-                              description,
-                              style: TextStyle(
-                                  overflow: TextOverflow.fade,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14),
-                            ),
-                            onTap: () async {
-                              // Handle tap on the suggestion
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ConfirmDrop(
-                                    location:
-                                        LatLng(details['lat'], details['lng']),
-                                    placeName: description,
-                                    selectedLocation: widget.selectedLocation,
-                                    pickupAddress: widget.pickupAddress,
+                            if (distance <= 100000) {
+                              return Container(
+                                height: 70, // Fixed height for the tile
+                                padding: const EdgeInsets.all(5.0),
+                                child: ListTile(
+                                  leading: Container(
+                                    height: 60,
+                                    width: 50,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          color: Colors.red,
+                                          size: 20,
+                                        ),
+                                        Text(
+                                          '$formattedDistance\nkm',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 12),
+                                        )
+                                      ],
+                                    ),
                                   ),
+                                  title: Text(
+                                    description,
+                                    style: TextStyle(
+                                        fontFamily: "Raleway",
+                                        overflow: TextOverflow.ellipsis,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14),
+                                  ),
+                                  onTap: () async {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ConfirmDrop(
+                                          location: LatLng(
+                                              details['lat'], details['lng']),
+                                          placeName: description,
+                                          selectedLocation:
+                                              widget.selectedLocation,
+                                          pickupAddress: widget.pickupAddress,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               );
-                            },
-                          ),
-                        );
-                      } else {
-                        return Container(); // Return an empty container if the distance is greater than 100 km
-                      }
-                    }
-                  },
-                );
-              },
-            ),
-          ),
+                            } else {
+                              return Container(); // Return an empty container if the distance is greater than 100 km
+                            }
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
         ],
       ),
     );

@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
@@ -60,6 +59,14 @@ class _RiderState extends State<Rider> {
         });
       } else {
         _fetchSuggestions(_searchController.text);
+      }
+    });
+
+    // Fetch and display the route, distance, and time between pickup and drop locations
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.selectedLocation != null && widget.dropLOcation != null) {
+        _showRoute(widget.selectedLocation, widget.dropLOcation);
+        _showDistanceAndTime(widget.selectedLocation, widget.dropLOcation);
       }
     });
   }
@@ -131,68 +138,7 @@ class _RiderState extends State<Rider> {
     }
   }
 
-  Future<void> _fetchPlaceDetails(String placeId) async {
-    try {
-      // Clear previous route info
-      setState(() {
-        _polylines.clear();
-        _distance = '';
-        _duration = '';
-        _showRouteInfo = false;
-      });
-
-      final response = await http.get(Uri.parse(
-          'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_apiKey'));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final location = data['result']['geometry']['location'];
-        final lat = location['lat'];
-        final lng = location['lng'];
-
-        setState(() {
-          _searchedLocation = LatLng(lat, lng);
-        });
-
-        if (_currentLocation != null && _searchedLocation != null) {
-          double distanceInMeters = Geolocator.distanceBetween(
-            _currentLocation!.latitude,
-            _currentLocation!.longitude,
-            _searchedLocation!.latitude,
-            _searchedLocation!.longitude,
-          );
-
-          if (distanceInMeters <= 50000) {
-            await _showRoute(_currentLocation!, _searchedLocation!);
-            await _showDistanceAndTime(_currentLocation!, _searchedLocation!);
-
-            _mapController.animateCamera(
-              CameraUpdate.newLatLngZoom(_searchedLocation!, 16.0),
-            );
-          } else {
-            _showError("Selected place is too far away.");
-          }
-        } else {
-          setState(() {
-            _showRouteInfo = false; // Hide route info if locations are not set
-          });
-        }
-      } else {
-        _showError('Failed to load place details');
-      }
-    } catch (e) {
-      _showError('An error occurred while fetching place details');
-    }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
+  Set<Marker> _markers = {};
 
   Future<void> _showRoute(LatLng origin, LatLng destination) async {
     final response = await http.get(Uri.parse(
@@ -215,6 +161,24 @@ class _RiderState extends State<Rider> {
             ),
           );
           _showRouteInfo = true; // Show route info
+
+          // Update the markers set
+          _markers = {
+            Marker(
+              markerId: MarkerId('origin'),
+              position: origin,
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueOrange),
+              infoWindow: InfoWindow(title: 'Pick Up'),
+            ),
+            Marker(
+              markerId: MarkerId('destination'),
+              position: destination,
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueAzure),
+              infoWindow: InfoWindow(title: 'Destination'),
+            ),
+          };
         });
 
         LatLngBounds bounds = LatLngBounds(
@@ -367,17 +331,7 @@ class _RiderState extends State<Rider> {
                           target: _currentLocation ?? LatLng(0, 0),
                           zoom: 14.0,
                         ),
-                        markers: {
-                          if (_searchedLocation != null)
-                            Marker(
-                              markerId: MarkerId('searchedLocation'),
-                              position: _searchedLocation!,
-                              icon: BitmapDescriptor.defaultMarkerWithHue(
-                                  BitmapDescriptor.hueRed),
-                              infoWindow:
-                                  InfoWindow(title: 'Searched Location'),
-                            ),
-                        },
+                        markers: _markers, // Use the _markers set here
                         polylines: _polylines,
                       ),
                     ),
