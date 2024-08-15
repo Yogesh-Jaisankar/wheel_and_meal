@@ -26,7 +26,10 @@ class _HomeState extends State<Home> {
   ];
 
   final List<Widget> pages = [
-    Rider(),
+    Rider(
+      dropAddress: '',
+      dropLatLng: null,
+    ),
     Restaurants(),
     Grocery(),
     Activity(),

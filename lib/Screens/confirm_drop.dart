@@ -5,21 +5,21 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:wheel_and_meal/Screens/rider.dart';
 
-class ConfirmPickup extends StatefulWidget {
+class ConfirmDrop extends StatefulWidget {
   final LatLng location;
   final String placeName;
 
-  const ConfirmPickup({
+  const ConfirmDrop({
     super.key,
     required this.location,
     required this.placeName,
   });
 
   @override
-  State<ConfirmPickup> createState() => _ConfirmPickupState();
+  State<ConfirmDrop> createState() => _ConfirmDropState();
 }
 
-class _ConfirmPickupState extends State<ConfirmPickup> {
+class _ConfirmDropState extends State<ConfirmDrop> {
   late GoogleMapController _mapController;
   late Marker _marker;
   String _address = 'Loading...';
@@ -28,7 +28,7 @@ class _ConfirmPickupState extends State<ConfirmPickup> {
   void initState() {
     super.initState();
     _marker = Marker(
-      markerId: MarkerId('selectedPlace'),
+      markerId: MarkerId('dropPlace'),
       position: widget.location,
       infoWindow: InfoWindow(
         title: widget.placeName,
@@ -55,7 +55,6 @@ class _ConfirmPickupState extends State<ConfirmPickup> {
       if (data['results'].isNotEmpty) {
         final formattedAddress = data['results'][0]['formatted_address'];
         // Extract landmark if available or highlight it in the address
-        // For example, using the first part of the address as the landmark
         final addressParts = formattedAddress.split(',');
         final landmark = addressParts.isNotEmpty ? addressParts[0] : 'Landmark';
         setState(() {
@@ -90,6 +89,18 @@ class _ConfirmPickupState extends State<ConfirmPickup> {
     });
   }
 
+  void _confirmDrop() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Rider(
+          dropAddress: _address,
+          dropLatLng: _marker.position,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +108,7 @@ class _ConfirmPickupState extends State<ConfirmPickup> {
       appBar: AppBar(
         backgroundColor: Colors.black87,
         title: Text(
-          "Confirm Pick Up",
+          "Confirm Drop",
           style: TextStyle(
             fontFamily: "Raleway",
             color: Colors.white,

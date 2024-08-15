@@ -7,10 +7,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:wheel_and_meal/Screens/bookride.dart';
+import 'package:wheel_and_meal/Screens/dest_search.dart';
 import 'package:wheel_and_meal/Screens/start_search.dart';
 
 class Rider extends StatefulWidget {
-  const Rider({Key? key}) : super(key: key);
+  final String? dropAddress;
+  final LatLng? dropLatLng;
+  const Rider({Key? key, this.dropAddress, this.dropLatLng}) : super(key: key);
 
   @override
   State<Rider> createState() => _RiderState();
@@ -299,105 +302,64 @@ class _RiderState extends State<Rider> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Stack(
-          children: [
-            _loading
-                ? Center(child: CircularProgressIndicator())
-                : _currentLocation == null
-                    ? Center(
-                        child: Text(
-                            'Location permissions are required to display the map.'))
-                    : GestureDetector(
-                        onTap: () {
-                          //close the suggestion on if i touch map
-                          HapticFeedback.heavyImpact();
-                          setState(() {
-                            _suggestions.clear();
-                          });
-                          FocusScope.of(context).unfocus();
+      body: Stack(
+        children: [
+          _loading
+              ? Center(child: CircularProgressIndicator())
+              : _currentLocation == null
+                  ? Center(
+                      child: Text(
+                          'Location permissions are required to display the map.'))
+                  : GestureDetector(
+                      onTap: () {
+                        // Close the suggestion if tapping on the map
+                        HapticFeedback.heavyImpact();
+                        setState(() {
+                          _suggestions.clear();
+                        });
+                        FocusScope.of(context).unfocus();
+                      },
+                      child: GoogleMap(
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        onMapCreated: (GoogleMapController controller) {
+                          _mapController = controller;
+                          if (_currentLocation != null) {
+                            _mapController.animateCamera(
+                              CameraUpdate.newLatLngZoom(
+                                  _currentLocation!, 16.0),
+                            );
+                          }
                         },
-                        child: GoogleMap(
-                          myLocationEnabled: true,
-                          myLocationButtonEnabled: false,
-                          onMapCreated: (GoogleMapController controller) {
-                            _mapController = controller;
-                            if (_currentLocation != null) {
-                              _mapController.animateCamera(
-                                CameraUpdate.newLatLngZoom(
-                                    _currentLocation!, 16.0),
-                              );
-                            }
-                          },
-                          initialCameraPosition: CameraPosition(
-                            target: _currentLocation ?? LatLng(0, 0),
-                            zoom: 14.0,
-                          ),
-                          markers: {
-                            if (_searchedLocation != null)
-                              Marker(
-                                markerId: MarkerId('searchedLocation'),
-                                position: _searchedLocation!,
-                                icon: BitmapDescriptor.defaultMarkerWithHue(
-                                    BitmapDescriptor.hueRed),
-                                infoWindow:
-                                    InfoWindow(title: 'Searched Location'),
-                              ),
-                          },
-                          polylines: _polylines,
+                        initialCameraPosition: CameraPosition(
+                          target: _currentLocation ?? LatLng(0, 0),
+                          zoom: 14.0,
                         ),
+                        markers: {
+                          if (_searchedLocation != null)
+                            Marker(
+                              markerId: MarkerId('searchedLocation'),
+                              position: _searchedLocation!,
+                              icon: BitmapDescriptor.defaultMarkerWithHue(
+                                  BitmapDescriptor.hueRed),
+                              infoWindow:
+                                  InfoWindow(title: 'Searched Location'),
+                            ),
+                        },
+                        polylines: _polylines,
                       ),
-            Column(
-              children: [
-                SizedBox(height: 50),
-                // pick up location
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => StartSearch()));
-                  },
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.only(left: 20, right: 20, top: 20),
-                    child: Container(
-                      height: 50,
-                      width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Container(
-                            height: 15,
-                            width: 15,
-                            decoration: BoxDecoration(
-                                color: Colors.lightGreen,
-                                borderRadius: BorderRadius.circular(50)),
-                          ),
-                        ),
-                        Text(
-                          _currentLocationAddress ?? "Fetching Location...",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Raleway"),
-                        ),
-                      ]),
                     ),
-                  ),
-                ),
-
-                // destination
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20, top: 5),
+          Column(
+            children: [
+              SizedBox(height: 50),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => StartSearch()));
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Container(
                     height: 50,
                     width: MediaQuery.of(context).size.width,
@@ -412,199 +374,167 @@ class _RiderState extends State<Rider> {
                         ),
                       ],
                     ),
-                    child: Row(children: [
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Container(
-                          height: 15,
-                          width: 15,
-                          decoration: BoxDecoration(
-                              color: Colors.redAccent,
-                              borderRadius: BorderRadius.circular(50)),
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Container(
+                            height: 15,
+                            width: 15,
+                            decoration: BoxDecoration(
+                              color: Colors.lightGreen,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(color: Colors.white),
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(
+                        Expanded(
+                          child: Text(
+                            _currentLocationAddress ?? "Fetching Location...",
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontFamily: "Raleway",
                             ),
-                            hintText: "Where to?",
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Icon(
-                          Icons.arrow_upward,
-                          color: Colors.white54,
-                        ),
-                      )
-                    ]),
-                  ),
-                ),
-                if (_searchController.text.isNotEmpty &&
-                    _suggestions.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: SizedBox(
-                          height: 200,
-                          child: _suggestionsLoading
-                              ? Center(child: CircularProgressIndicator())
-                              : ListView.builder(
-                                  itemCount: _suggestions.length,
-                                  itemBuilder: (context, index) {
-                                    final suggestion = _suggestions[index];
-                                    return Container(
-                                      margin: EdgeInsets.only(
-                                          left: 5,
-                                          right: 5,
-                                          bottom: 10), // Adjust margins
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.2),
-                                            spreadRadius: 2,
-                                            blurRadius: 5,
-                                            offset: Offset(0,
-                                                3), // Changes position of shadow
-                                          ),
-                                        ],
-                                      ),
-                                      child: ListTile(
-                                        leading: Icon(Icons.location_on,
-                                            color: Colors.redAccent),
-                                        title: Text(
-                                          suggestion['description'],
-                                          style: TextStyle(
-                                            color: Colors.black87,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: "Raleway",
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          'Tap to select',
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontFamily: "Raleway",
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        onTap: () async {
-                                          FocusScope.of(context).unfocus();
-                                          setState(() {
-                                            _suggestions
-                                                .clear(); // Clear suggestions
-                                          });
-                                          await _fetchPlaceDetails(
-                                              suggestion['place_id']);
-                                        },
-                                      ),
-                                    );
-                                  },
-                                )),
-                    ),
-                  )
-              ],
-            ),
-
-            // container to show distance and time
-            if (_showRouteInfo)
-              Positioned(
-                top: 200,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Container(
-                    height: 50,
-                    width: 150,
-                    decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "$_distance",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Raleway",
-                              fontSize: 18),
-                        ),
-                        Text(
-                          "$_duration",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Raleway",
-                              fontSize: 15),
-                        )
                       ],
                     ),
                   ),
                 ),
               ),
-
-            //Book Ride Container
-            if (_showRouteInfo)
-              Positioned(
-                  bottom: 80,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Bookride()));
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Container(
-                        height: 50,
-                        width: 200,
-                        decoration: BoxDecoration(
-                            color: Colors.black87,
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Center(
-                          child: Text("BOOK RIDE",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: "Raleway",
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => DestSearch()));
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  child: Container(
+                    height: 50,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Container(
+                            height: 15,
+                            width: 15,
+                            decoration: BoxDecoration(
+                              color: Colors.deepOrangeAccent,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "Where to?",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: "Raleway",
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Suggestions container
+            ],
+          ),
+          if (_showRouteInfo)
+            Positioned(
+              top: 200,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Container(
+                  height: 50,
+                  width: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "$_distance",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "Raleway",
+                          fontSize: 18,
+                        ),
+                      ),
+                      Text(
+                        "$_duration",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "Raleway",
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (_showRouteInfo)
+            Positioned(
+              bottom: 80,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Bookride()));
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Container(
+                    height: 50,
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "BOOK RIDE",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Raleway",
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
                       ),
                     ),
-                  ))
-          ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: 50, right: 10),
+        child: FloatingActionButton(
+          enableFeedback: true,
+          backgroundColor: Colors.black87,
+          onPressed: _recenterMap,
+          child: Icon(Icons.my_location, color: Colors.white),
         ),
-        floatingActionButton: Padding(
-          padding: EdgeInsets.only(bottom: 50, right: 10),
-          child: FloatingActionButton(
-            enableFeedback: true,
-            backgroundColor: Colors.black87,
-            onPressed: _recenterMap,
-            child: Icon(Icons.my_location, color: Colors.white),
-          ),
-        ));
+      ),
+    );
   }
 
   Future<void> _recenterMap() async {
