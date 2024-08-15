@@ -6,6 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
+import 'package:wheel_and_meal/Screens/bookride.dart';
+import 'package:wheel_and_meal/Screens/start_search.dart';
 
 class Rider extends StatefulWidget {
   const Rider({Key? key}) : super(key: key);
@@ -328,8 +330,55 @@ class _RiderState extends State<Rider> {
             Column(
               children: [
                 SizedBox(height: 50),
+                // start location
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => StartSearch()));
+                  },
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.only(left: 20, right: 20, top: 20),
+                    child: Container(
+                      height: 50,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Container(
+                            height: 15,
+                            width: 15,
+                            decoration: BoxDecoration(
+                                color: Colors.lightGreen,
+                                borderRadius: BorderRadius.circular(50)),
+                          ),
+                        ),
+                        Text(
+                          "Current Location",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "Raleway"),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
+
+                // destination
                 Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 5),
                   child: Container(
                     height: 50,
                     width: MediaQuery.of(context).size.width,
@@ -351,7 +400,7 @@ class _RiderState extends State<Rider> {
                           height: 15,
                           width: 15,
                           decoration: BoxDecoration(
-                              color: Colors.lightGreen,
+                              color: Colors.redAccent,
                               borderRadius: BorderRadius.circular(50)),
                         ),
                       ),
@@ -464,7 +513,7 @@ class _RiderState extends State<Rider> {
             // container to show distance and time
             if (_showRouteInfo)
               Positioned(
-                bottom: 80,
+                top: 200,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Container(
@@ -481,13 +530,15 @@ class _RiderState extends State<Rider> {
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
+                              fontFamily: "Raleway",
                               fontSize: 18),
                         ),
                         Text(
                           "$_duration",
                           style: TextStyle(
                               color: Colors.white,
-                              //fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "Raleway",
                               fontSize: 15),
                         )
                       ],
@@ -495,6 +546,35 @@ class _RiderState extends State<Rider> {
                   ),
                 ),
               ),
+
+            //Book Ride Container
+            if (_showRouteInfo)
+              Positioned(
+                  bottom: 80,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Bookride()));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Container(
+                        height: 50,
+                        width: 200,
+                        decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Center(
+                          child: Text("BOOK RIDE",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: "Raleway",
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18)),
+                        ),
+                      ),
+                    ),
+                  ))
           ],
         ),
         floatingActionButton: Padding(
