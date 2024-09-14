@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'Screens/home.dart';
+import 'package:wheel_and_meal/Screens/PhoneAuth.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.white,
       ),
-      home: Home(),
+      home: PhoneInputPage(),
     );
   }
 }
