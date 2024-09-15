@@ -281,10 +281,6 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                     ),
                   ),
                 ),
-                Text(
-                  "Wheel And Meal ™ ",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                )
               ],
             ),
           ),
