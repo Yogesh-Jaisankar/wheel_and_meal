@@ -17,6 +17,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
   final TextEditingController phoneController = TextEditingController();
   final _otplessFlutterPlugin = Otpless();
   bool isInitIos = false;
+  bool isLoading = false; // Loading state
   static const String appId = "H36KQYXL24MCA0LISYA9";
 
   @override
@@ -30,6 +31,9 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
   }
 
   void onHeadlessResult(dynamic result) {
+    setState(() {
+      isLoading = false; // Stop loading once result is received
+    });
     debugPrint("Phone auth response: $result");
     Navigator.push(
       context,
@@ -42,30 +46,35 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
     );
   }
 
-  Future<void> startHeadlessWithWhatsapp() async {
-    if (Platform.isIOS && !isInitIos) {
-      _otplessFlutterPlugin.initHeadless(appId);
-      _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
-      isInitIos = true;
-      debugPrint("init headless sdk is called for ios");
-      return;
-    }
-    Map<String, dynamic> arg = {'channelType': "WHATSAPP"};
-    _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
-  }
-
   Future<void> startPhoneAuth() async {
-    if (Platform.isIOS && !isInitIos) {
-      _otplessFlutterPlugin.initHeadless(appId);
-      _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
-      isInitIos = true;
-      return;
+    // Hide keyboard
+    FocusScope.of(context).unfocus();
+
+    // Start showing loading indicator
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      if (Platform.isIOS && !isInitIos) {
+        _otplessFlutterPlugin.initHeadless(appId);
+        _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
+        isInitIos = true;
+      }
+
+      Map<String, dynamic> arg = {
+        "phone": phoneController.text,
+        "countryCode": "91", // Change country code as required
+      };
+
+      // Start phone authentication
+      await _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
+    } catch (e) {
+      debugPrint("Error in phone authentication: $e");
+      setState(() {
+        isLoading = false; // Stop loading if error occurs
+      });
     }
-    Map<String, dynamic> arg = {
-      "phone": phoneController.text,
-      "countryCode": "91", // Change country code as required
-    };
-    _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
   }
 
   @override
@@ -85,10 +94,12 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
               ),
             ),
             const SizedBox(height: 20),
-            CupertinoButton.filled(
-              onPressed: startPhoneAuth,
-              child: const Text("Send OTP"),
-            ),
+            isLoading
+                ? const CircularProgressIndicator() // Show loading indicator
+                : CupertinoButton.filled(
+                    onPressed: startPhoneAuth,
+                    child: const Text("Send OTP"),
+                  ),
           ],
         ),
       ),
