@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mongo_dart/mongo_dart.dart'
+    as mongo; // Using 'as mongo' for aliasing
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserDetailsEdit extends StatefulWidget {
@@ -10,6 +12,8 @@ class UserDetailsEdit extends StatefulWidget {
 
 class _UserDetailsEditState extends State<UserDetailsEdit> {
   String? phoneNumber;
+  String? name;
+  String? dob;
 
   @override
   void initState() {
@@ -18,15 +22,36 @@ class _UserDetailsEditState extends State<UserDetailsEdit> {
   }
 
   Future<void> _loadPhoneNumber() async {
-    String? number = await getPhoneNumber();
-    setState(() {
-      phoneNumber = number; // Store the retrieved phone number
-    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    phoneNumber = prefs.getString('phoneNumber'); // Retrieve phone number
+    if (phoneNumber != null) {
+      await _fetchUserDetails(phoneNumber!); // Fetch user details
+    }
+    setState(() {});
   }
 
-  Future<String?> getPhoneNumber() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('phoneNumber'); // Returns the stored phone number
+  Future<void> _fetchUserDetails(String phoneNumber) async {
+    var db = await mongo.Db.create(
+        "mongodb+srv://yogesh:7806@cluster0.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=Cluster0");
+    await db.open();
+    var collection = db.collection('users');
+
+    // Query for the user with the given phone number
+    var user = await collection.findOne({'_id': phoneNumber});
+
+    if (user != null) {
+      setState(() {
+        name = user['name'];
+        dob = user['dob'];
+      });
+    } else {
+      // Handle the case where user is not found
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User details not found')),
+      );
+    }
+
+    await db.close();
   }
 
   @override
@@ -60,7 +85,7 @@ class _UserDetailsEditState extends State<UserDetailsEdit> {
                           fontSize: 20),
                     ),
                     Text(
-                      "Yogesh Jaisankar",
+                      name ?? "Loading...", // Display loaded name
                       style: TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.w300,
@@ -128,7 +153,7 @@ class _UserDetailsEditState extends State<UserDetailsEdit> {
                           fontSize: 20),
                     ),
                     Text(
-                      "2003-09-05",
+                      dob ?? "Loading...", // Display loaded DOB
                       style: TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.w300,
