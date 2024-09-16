@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -22,12 +21,66 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
   final TextEditingController phoneController = TextEditingController();
   final _otplessFlutterPlugin = Otpless();
   bool isInitIos = false;
+  bool isLoading = false; // Loading state
   static const String appId = "H36KQYXL24MCA0LISYA9";
 
-  String selectedCountryCode = '+91'; // Default country code
-  bool isPhoneNumberValid = false;
-  bool isLoading = false;
-  bool isProcessing = false; // New flag for processing state
+  @override
+  void initState() {
+    super.initState();
+    startTimer();
+    if (Platform.isAndroid) {
+      _otplessFlutterPlugin.initHeadless(appId);
+      _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
+      debugPrint("init headless sdk is called for android");
+    }
+  }
+
+  void onHeadlessResult(dynamic result) {
+    setState(() {
+      isLoading = false; // Stop loading once result is received
+    });
+    debugPrint("Phone auth response: $result");
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => OtpInputPage(
+          phoneNumber: phoneController.text,
+          countryCode: '+91',
+        ),
+      ),
+    );
+  }
+
+  Future<void> startPhoneAuth() async {
+    // Hide keyboard
+    FocusScope.of(context).unfocus();
+
+    // Start showing loading indicator
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      if (Platform.isIOS && !isInitIos) {
+        _otplessFlutterPlugin.initHeadless(appId);
+        _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
+        isInitIos = true;
+      }
+
+      Map<String, dynamic> arg = {
+        "phone": phoneController.text,
+        "countryCode": "91", // Change country code as required
+      };
+
+      // Start phone authentication
+      await _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
+    } catch (e) {
+      debugPrint("Error in phone authentication: $e");
+      setState(() {
+        isLoading = false; // Stop loading if error occurs
+      });
+    }
+  }
 
   Timer? timer; // Declare timer variable
   int currentIndex = 0; // Current index for cycling texts
@@ -40,113 +93,12 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
     "ನಮಸ್ಕಾರ"
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    startTimer();
-    phoneController.addListener(() {
-      setState(() {
-        isPhoneNumberValid = phoneController
-            .text.isNotEmpty; // Check if phone number is not empty
-      });
-    });
-    if (Platform.isAndroid) {
-      _otplessFlutterPlugin.initHeadless(appId);
-      _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
-      debugPrint("init headless sdk is called for android");
-    }
-  }
-
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 2), (Timer t) {
       setState(() {
         currentIndex = (currentIndex + 1) % texts.length; // Cycle through texts
       });
     });
-  }
-
-  void onHeadlessResult(dynamic result) {
-    debugPrint("Phone auth response: $result");
-
-    if (!mounted || !isLoading)
-      return; // Check if widget is still mounted and loading
-
-    // Navigate to OTP page only if isLoading is true
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => OtpInputPage(
-          phoneNumber: phoneController.text,
-          countryCode: selectedCountryCode,
-        ),
-      ),
-    );
-
-    setState(() {
-      isLoading = false; // Reset loading state
-    });
-  }
-
-  Future<void> startHeadlessWithWhatsapp() async {
-    if (Platform.isIOS && !isInitIos) {
-      _otplessFlutterPlugin.initHeadless(appId);
-      _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
-      isInitIos = true;
-      debugPrint("init headless sdk is called for ios");
-      return;
-    }
-    Map<String, dynamic> arg = {'channelType': "WHATSAPP"};
-    _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
-  }
-
-  Future<void> startPhoneAuth() async {
-    if (isProcessing) return; // Prevent multiple clicks
-    setState(() {
-      isProcessing = true; // Set processing to true
-      isLoading = true; // Show loading indicator immediately
-    });
-
-    // Hide the keyboard
-    FocusScope.of(context).unfocus();
-
-    try {
-      Map<String, dynamic> arg = {
-        "phone": phoneController.text,
-        "countryCode": selectedCountryCode.replaceAll('+', ''),
-      };
-
-      await _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
-      print("Otpless headless started successfully");
-
-      // Wait for at least 3 seconds before navigating
-      await Future.delayed(Duration(seconds: 3));
-
-      // Now navigate to OTP page
-      if (isLoading) {
-        setState(() {
-          isLoading = false; // Stop loading animation
-        });
-        Navigator.push(
-          context,
-          CupertinoPageRoute(
-            builder: (context) => OtpInputPage(
-              phoneNumber: phoneController.text,
-              countryCode: selectedCountryCode,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint("Error starting phone auth: $e");
-      // Optionally show an error message to the user
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to send OTP. Please try again.")),
-      );
-    } finally {
-      setState(() {
-        isProcessing = false; // Reset processing state
-      });
-    }
   }
 
   @override
@@ -160,190 +112,156 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
+        left: false,
+        right: false,
+        bottom: false,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Lottie.asset("assets/cycle.json"),
-                const SizedBox(height: 30),
-                Container(
-                  height: 100,
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      texts[currentIndex],
-                      style: TextStyle(fontSize: 40, fontFamily: "Raleway"),
+          child: Column(
+            children: [
+              Lottie.asset("assets/cycle.json"),
+              const SizedBox(height: 30),
+              Container(
+                height: 100,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    texts[currentIndex],
+                    style: TextStyle(fontSize: 40, fontFamily: "Raleway"),
+                  ),
+                ),
+              ),
+              Container(
+                height: 50,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.black87)),
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: TextFormField(
+                    maxLength: 10,
+                    maxLines: 1,
+                    cursorColor: Colors.black87,
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                        hintText: "Phone Number",
+                        border: InputBorder.none,
+                        counterText: ""),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 12,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: "Read our ",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 25),
-                Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all()),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: CountryCodePicker(
-                          initialSelection: "IN",
-                          onChanged: (code) {
-                            setState(() {
-                              selectedCountryCode = code.dialCode!;
-                            });
-                          },
-                        ),
+                    TextSpan(
+                      text: "Privacy and Policy",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: TextField(
-                          cursorColor: Colors.black87,
-                          controller: phoneController,
-                          keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            hintText: "Phone Number",
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          _loadContent('assets/privacy_policy.txt')
+                              .then((content) {
+                            _showDialog(context, "Privacy and Policy", content);
+                          });
+                        },
                     ),
-                    children: [
-                      TextSpan(
-                        text: "Read our ",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w300,
-                          color: Colors.black,
-                        ),
+                    TextSpan(
+                      text: " and Tap Agree and continue to accept our ",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black,
                       ),
-                      TextSpan(
-                        text: "Privacy and Policy",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            _loadContent('assets/privacy_policy.txt')
-                                .then((content) {
-                              _showDialog(
-                                  context, "Privacy and Policy", content);
-                            });
-                          },
+                    ),
+                    TextSpan(
+                      text: "Terms and Conditions",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
-                      TextSpan(
-                        text: " and Tap Agree and continue to accept our ",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w300,
-                          color: Colors.black,
-                        ),
-                      ),
-                      TextSpan(
-                        text: "Terms and Conditions",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            _loadContent('assets/tc.txt').then((content) {
-                              _showDialog(
-                                  context, "Terms and Conditions", content);
-                            });
-                          },
-                      ),
-                    ],
-                  ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          _loadContent('assets/tc.txt').then((content) {
+                            _showDialog(
+                                context, "Terms and Conditions", content);
+                          });
+                        },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 80),
-
-                // Show Lottie animation if loading, otherwise show button
-                isLoading
-                    ? Center(
-                        child: Container(
-                          height: 150,
-                          width: 150,
-                          child: Lottie.asset('assets/loading.json'),
-                        ),
-                      )
-                    : GestureDetector(
-                        onTap: isPhoneNumberValid && !isProcessing
-                            ? () {
-                                HapticFeedback.heavyImpact();
-                                setState(() {
-                                  isLoading = true; // Start loading animation
-                                });
-                                startPhoneAuth();
-                              }
-                            : null, // Disable if not valid or processing
-                        child: Container(
-                          height: 50,
-                          width: 250,
-                          decoration: BoxDecoration(
-                            color: isPhoneNumberValid && !isProcessing
-                                ? Colors.green
-                                : Colors.black87,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "AGREE & CONTINUE",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+              ),
+              const SizedBox(height: 80),
+              isLoading
+                  ? Lottie.asset(
+                      "assets/loading.json") // Show loading indicator
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: CupertinoColors
+                            .black, // Set the background color to black
+                        borderRadius: BorderRadius.circular(
+                            8.0), // Optional: Adjust the border radius
                       ),
-              ],
-            ),
+                      child: CupertinoButton(
+                        onPressed: startPhoneAuth,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 10.0),
+                        child: const Text(
+                          "Agree and Continue",
+                          style: TextStyle(
+                              color: CupertinoColors
+                                  .white), // Text color set to white
+                        ),
+                        color: Colors
+                            .transparent, // Make button itself transparent, color is handled by Container
+                      ),
+                    )
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  Future<String> _loadContent(String path) async {
-    return await rootBundle.loadString(path);
-  }
+Future<String> _loadContent(String path) async {
+  return await rootBundle.loadString(path);
+}
 
-  void _showDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text(title),
-          content: SingleChildScrollView(child: Text(content)),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text(
-                "Close",
-                style: TextStyle(color: Colors.black87),
-              ),
+void _showDialog(BuildContext context, String title, String content) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        title: Text(title),
+        content: SingleChildScrollView(child: Text(content)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text(
+              "Close",
+              style: TextStyle(color: Colors.black87),
             ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+        ],
+      );
+    },
+  );
 }
