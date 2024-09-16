@@ -68,8 +68,10 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
   void onHeadlessResult(dynamic result) {
     debugPrint("Phone auth response: $result");
 
-    if (!mounted) return; // Check if widget is still mounted
+    if (!mounted || !isLoading)
+      return; // Check if widget is still mounted and loading
 
+    // Navigate to OTP page only if isLoading is true
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -79,6 +81,10 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
         ),
       ),
     );
+
+    setState(() {
+      isLoading = false; // Reset loading state
+    });
   }
 
   Future<void> startHeadlessWithWhatsapp() async {
