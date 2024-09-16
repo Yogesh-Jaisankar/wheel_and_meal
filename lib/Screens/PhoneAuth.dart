@@ -278,7 +278,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                         child: Container(
                           height: 150,
                           width: 150,
-                          child: Lottie.asset('assets/pin1.json'),
+                          child: Lottie.asset('assets/loading.json'),
                         ),
                       )
                     : GestureDetector(
