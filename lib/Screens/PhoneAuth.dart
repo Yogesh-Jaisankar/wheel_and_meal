@@ -111,6 +111,25 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
 
       await _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
       print("Otpless headless started successfully");
+
+      // Wait for at least 3 seconds before navigating
+      await Future.delayed(Duration(seconds: 3));
+
+      // Now navigate to OTP page
+      if (isLoading) {
+        setState(() {
+          isLoading = false; // Stop loading animation
+        });
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => OtpInputPage(
+              phoneNumber: phoneController.text,
+              countryCode: selectedCountryCode,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       debugPrint("Error starting phone auth: $e");
       // Optionally show an error message to the user
@@ -120,7 +139,6 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
     } finally {
       setState(() {
         isProcessing = false; // Reset processing state
-        isLoading = false; // Reset loading state
       });
     }
   }
@@ -254,7 +272,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                         child: Container(
                           height: 150,
                           width: 150,
-                          child: Lottie.asset('assets/cycle.json'),
+                          child: Lottie.asset('assets/pin1.json'),
                         ),
                       )
                     : GestureDetector(
