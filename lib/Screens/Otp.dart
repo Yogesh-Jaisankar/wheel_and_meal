@@ -45,6 +45,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
     if (result != null && result['statusCode'] == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('phoneNumber', widget.phoneNumber);
 
       // Check if the phone number exists in the database
       bool userExists = await checkIfUserExists(widget.phoneNumber);

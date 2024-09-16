@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserDetailsEdit extends StatefulWidget {
   const UserDetailsEdit({super.key});
@@ -8,6 +9,26 @@ class UserDetailsEdit extends StatefulWidget {
 }
 
 class _UserDetailsEditState extends State<UserDetailsEdit> {
+  String? phoneNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhoneNumber(); // Load phone number on initialization
+  }
+
+  Future<void> _loadPhoneNumber() async {
+    String? number = await getPhoneNumber();
+    setState(() {
+      phoneNumber = number; // Store the retrieved phone number
+    });
+  }
+
+  Future<String?> getPhoneNumber() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('phoneNumber'); // Returns the stored phone number
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +90,8 @@ class _UserDetailsEditState extends State<UserDetailsEdit> {
                     Row(
                       children: [
                         Text(
-                          "1234567890",
+                          phoneNumber ??
+                              "Loading...", // Display loaded phone number
                           style: TextStyle(
                               color: Colors.black87,
                               fontWeight: FontWeight.w300,
