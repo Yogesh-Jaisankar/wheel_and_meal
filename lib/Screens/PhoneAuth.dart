@@ -117,120 +117,123 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Lottie.asset("assets/cycle.json"),
-              const SizedBox(height: 30),
-              Container(
-                height: 100,
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    texts[currentIndex],
-                    style: TextStyle(fontSize: 40, fontFamily: "Raleway"),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Lottie.asset("assets/cycle.json"),
+                const SizedBox(height: 30),
+                Container(
+                  height: 100,
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      texts[currentIndex],
+                      style: TextStyle(fontSize: 40, fontFamily: "Raleway"),
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                height: 50,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.black87)),
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: TextFormField(
-                    maxLength: 10,
-                    maxLines: 1,
-                    cursorColor: Colors.black87,
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                        hintText: "Phone Number",
-                        border: InputBorder.none,
-                        counterText: ""),
+                Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.black87)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: TextFormField(
+                      maxLength: 10,
+                      maxLines: 1,
+                      cursorColor: Colors.black87,
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                          hintText: "Phone Number",
+                          border: InputBorder.none,
+                          counterText: ""),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: "Read our ",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w300,
-                        color: Colors.black,
-                      ),
+                const SizedBox(height: 20),
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
                     ),
-                    TextSpan(
-                      text: "Privacy and Policy",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          _loadContent('assets/privacy_policy.txt')
-                              .then((content) {
-                            _showDialog(context, "Privacy and Policy", content);
-                          });
-                        },
-                    ),
-                    TextSpan(
-                      text: " and Tap Agree and continue to accept our ",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w300,
-                        color: Colors.black,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "Terms and Conditions",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          _loadContent('assets/tc.txt').then((content) {
-                            _showDialog(
-                                context, "Terms and Conditions", content);
-                          });
-                        },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 80),
-              isLoading
-                  ? Lottie.asset(
-                      "assets/loading.json") // Show loading indicator
-                  : Container(
-                      decoration: BoxDecoration(
-                        color: CupertinoColors
-                            .black, // Set the background color to black
-                        borderRadius: BorderRadius.circular(
-                            8.0), // Optional: Adjust the border radius
-                      ),
-                      child: CupertinoButton(
-                        onPressed: startPhoneAuth,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 10.0),
-                        child: const Text(
-                          "Agree and Continue",
-                          style: TextStyle(
-                              color: CupertinoColors
-                                  .white), // Text color set to white
+                    children: [
+                      TextSpan(
+                        text: "Read our ",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w300,
+                          color: Colors.black,
                         ),
-                        color: Colors
-                            .transparent, // Make button itself transparent, color is handled by Container
                       ),
-                    )
-            ],
+                      TextSpan(
+                        text: "Privacy and Policy",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            _loadContent('assets/privacy_policy.txt')
+                                .then((content) {
+                              _showDialog(
+                                  context, "Privacy and Policy", content);
+                            });
+                          },
+                      ),
+                      TextSpan(
+                        text: " and Tap Agree and continue to accept our ",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w300,
+                          color: Colors.black,
+                        ),
+                      ),
+                      TextSpan(
+                        text: "Terms and Conditions",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            _loadContent('assets/tc.txt').then((content) {
+                              _showDialog(
+                                  context, "Terms and Conditions", content);
+                            });
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 80),
+                isLoading
+                    ? Lottie.asset(
+                        "assets/loading.json") // Show loading indicator
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: CupertinoColors
+                              .black, // Set the background color to black
+                          borderRadius: BorderRadius.circular(
+                              8.0), // Optional: Adjust the border radius
+                        ),
+                        child: CupertinoButton(
+                          onPressed: startPhoneAuth,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 10.0),
+                          child: const Text(
+                            "Agree and Continue",
+                            style: TextStyle(
+                                color: CupertinoColors
+                                    .white), // Text color set to white
+                          ),
+                          color: Colors
+                              .transparent, // Make button itself transparent, color is handled by Container
+                        ),
+                      )
+              ],
+            ),
           ),
         ),
       ),

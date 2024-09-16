@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wheel_and_meal/Screens/home.dart';
 
-import 'Screens/PhoneAuth.dart'; // Import your home screen
+import 'Screens/PhoneAuth.dart';
+import 'Screens/home.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'Wheel And Meal',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primaryColor: Colors.white),
-      // home: Home(),
+      // home: UserDetailsPage(phoneNumber: "phoneNumber"),
       home: FutureBuilder<bool>(
         future: _checkLoginStatus(),
         builder: (context, snapshot) {

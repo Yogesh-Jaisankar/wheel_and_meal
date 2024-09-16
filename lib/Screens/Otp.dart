@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:otpless_flutter/otpless_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wheel_and_meal/Screens/home.dart';
+
+import 'UserDetails.dart';
+import 'home.dart'; // Import your HomePage here
 
 class OtpInputPage extends StatefulWidget {
   final String phoneNumber;
-  final String countryCode; // Added for country code
+  final String countryCode;
   const OtpInputPage(
       {Key? key, required this.phoneNumber, required this.countryCode})
       : super(key: key);
@@ -19,27 +22,57 @@ class _OtpInputPageState extends State<OtpInputPage> {
   final TextEditingController otpController = TextEditingController();
   final _otplessFlutterPlugin = Otpless();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false; // Loading state
+  bool _isLoading = false;
+
+  Future<bool> checkIfUserExists(String phoneNumber) async {
+    var db = await mongo.Db.create(
+        "mongodb+srv://yogesh:7806@cluster0.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=Cluster0");
+    await db.open();
+    var collection = db.collection('users');
+
+    var existingUser = await collection.findOne({"_id": phoneNumber});
+    await db.close();
+
+    return existingUser != null;
+  }
 
   void onOtpVerification(dynamic result) async {
+    if (!mounted) return;
     setState(() {
-      _isLoading = false; // Stop loading when verification is done
+      _isLoading = false;
     });
 
     if (result != null && result['statusCode'] == 200) {
-      if (!mounted) return; // Check if widget is still mounted
-
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => Home()),
-      );
+      // Check if the phone number exists in the database
+      bool userExists = await checkIfUserExists(widget.phoneNumber);
+
+      if (!mounted) return;
+
+      if (userExists) {
+        // If the user exists, navigate to HomePage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(), // Navigate to the home page
+          ),
+        );
+      } else {
+        // If the user doesn't exist, navigate to UserDetailsPage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UserDetailsPage(
+              phoneNumber: widget.phoneNumber, // Pass the phone number
+            ),
+          ),
+        );
+      }
     } else {
       debugPrint("OTP verification failed: $result");
-      if (!mounted) return; // Ensure mounted before showing snackbar
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('OTP verification failed. Please try again.')),
       );
@@ -49,16 +82,22 @@ class _OtpInputPageState extends State<OtpInputPage> {
   Future<void> verifyOtp() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true; // Start loading when verification begins
+        _isLoading = true;
       });
 
       Map<String, dynamic> arg = {
         "phone": widget.phoneNumber,
-        "countryCode": widget.countryCode, // Use the passed country code
+        "countryCode": widget.countryCode,
         "otp": otpController.text,
       };
       _otplessFlutterPlugin.startHeadless(onOtpVerification, arg);
     }
+  }
+
+  @override
+  void dispose() {
+    otpController.dispose();
+    super.dispose();
   }
 
   @override
@@ -99,23 +138,32 @@ class _OtpInputPageState extends State<OtpInputPage> {
                         ),
                       ),
                       SizedBox(height: 50),
-                      TextFormField(
-                        controller: otpController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          focusColor: Colors.black87,
-                          labelText: "Enter OTP",
-                          border: OutlineInputBorder(),
+                      Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.black87)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            controller: otpController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              focusColor: Colors.black87,
+                              hintText: "Enter Your OTP",
+                              border: InputBorder.none,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter the OTP';
+                              }
+                              if (value.length != 6) {
+                                return 'OTP must be 6 digits';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter the OTP';
-                          }
-                          if (value.length != 6) {
-                            return 'OTP must be 6 digits';
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 50),
                       GestureDetector(
@@ -153,12 +201,11 @@ class _OtpInputPageState extends State<OtpInputPage> {
               ),
             ),
           ),
-          if (_isLoading) // Show the loading overlay when loading
+          if (_isLoading)
             Container(
-              color: Colors.black54, // Grey background
+              color: Colors.black54,
               child: Center(
-                child: Lottie.asset("assets/otp.json",
-                    height: 100, width: 100), // Your loading Lottie file
+                child: Lottie.asset("assets/otp.json", height: 100, width: 100),
               ),
             ),
         ],
