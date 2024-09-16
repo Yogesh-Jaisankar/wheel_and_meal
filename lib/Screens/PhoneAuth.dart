@@ -97,7 +97,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
     if (isProcessing) return; // Prevent multiple clicks
     setState(() {
       isProcessing = true; // Set processing to true
-      isLoading = true; // Show loading indicator
+      isLoading = true; // Show loading indicator immediately
     });
 
     // Hide the keyboard
@@ -106,8 +106,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
     try {
       Map<String, dynamic> arg = {
         "phone": phoneController.text,
-        "countryCode": selectedCountryCode.replaceAll(
-            '+', ''), // Use selected country code without '+'
+        "countryCode": selectedCountryCode.replaceAll('+', ''),
       };
 
       await _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
@@ -172,8 +171,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                           initialSelection: "IN",
                           onChanged: (code) {
                             setState(() {
-                              selectedCountryCode = code
-                                  .dialCode!; // Update selected country code
+                              selectedCountryCode = code.dialCode!;
                             });
                           },
                         ),
@@ -249,42 +247,46 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                   ),
                 ),
                 const SizedBox(height: 80),
-                GestureDetector(
-                  onTap: isPhoneNumberValid && !isProcessing
-                      ? () {
-                          HapticFeedback.heavyImpact();
-                          startPhoneAuth();
-                        }
-                      : null, // Disable if not valid or processing
-                  child: Container(
-                    height: 50,
-                    width: 250,
-                    decoration: BoxDecoration(
-                      color: isPhoneNumberValid && !isProcessing
-                          ? Colors.green
-                          : Colors.black87,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: isLoading
-                          ? Container(
-                              height: 25,
-                              width: 25,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
+
+                // Show Lottie animation if loading, otherwise show button
+                isLoading
+                    ? Center(
+                        child: Container(
+                          height: 150,
+                          width: 150,
+                          child: Lottie.asset('assets/cycle.json'),
+                        ),
+                      )
+                    : GestureDetector(
+                        onTap: isPhoneNumberValid && !isProcessing
+                            ? () {
+                                HapticFeedback.heavyImpact();
+                                setState(() {
+                                  isLoading = true; // Start loading animation
+                                });
+                                startPhoneAuth();
+                              }
+                            : null, // Disable if not valid or processing
+                        child: Container(
+                          height: 50,
+                          width: 250,
+                          decoration: BoxDecoration(
+                            color: isPhoneNumberValid && !isProcessing
+                                ? Colors.green
+                                : Colors.black87,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: Text(
                               "AGREE & CONTINUE",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                    ),
-                  ),
-                ),
+                          ),
+                        ),
+                      ),
               ],
             ),
           ),
