@@ -117,9 +117,8 @@ class _OtpInputPageState extends State<OtpInputPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        height: 200,
-                        width: 200,
-                        child: Lottie.asset("assets/pin1.json"),
+                        child: Lottie.asset("assets/whatsapp.json",
+                            height: 200, width: 400),
                       ),
                       SizedBox(height: 20),
                       Text(
@@ -134,6 +133,14 @@ class _OtpInputPageState extends State<OtpInputPage> {
                         widget.phoneNumber,
                         style: TextStyle(
                           fontSize: 15,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "via Whatsapp",
+                        style: TextStyle(
+                          fontSize: 12,
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
                         ),
