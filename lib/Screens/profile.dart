@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wheel_and_meal/Screens/PhoneAuth.dart'; // Adjust the import based on your directory structure
+import 'package:wheel_and_meal/Screens/PhoneAuth.dart';
+import 'package:wheel_and_meal/Screens/edituserdetails.dart'; // Adjust the import based on your directory structure
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -27,34 +29,81 @@ class _ProfileState extends State<Profile> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Profile"),
+        centerTitle: false,
         backgroundColor: Colors.white,
+        title: Text(
+          "Yogesh",
+          style: TextStyle(fontSize: 40),
+        ),
+        actions: [
+          Lottie.asset("assets/userlogo.json", fit: BoxFit.cover),
+        ],
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  _logout();
-                },
-                child: Container(
-                  height: 50,
-                  width: 100,
-                  decoration: BoxDecoration(
+          child: SafeArea(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(
+                    Icons.electric_bike,
+                    color: Colors.black87,
+                    size: 30,
+                  ),
+                  title: Text(
+                    "Rides",
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.shopping_basket_rounded,
+                    color: Colors.black87,
+                    size: 30,
+                  ),
+                  title: Text(
+                    "Orders",
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => UserDetailsEdit()));
+                  },
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.person,
                       color: Colors.black87,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Center(
-                    child: Text(
-                      "Logout",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                      size: 30,
+                    ),
+                    title: Text(
+                      "Manage Your Account",
+                      style: TextStyle(color: Colors.black87),
                     ),
                   ),
                 ),
-              )
-            ],
+                GestureDetector(
+                  onTap: () {
+                    _logout();
+                  },
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.key_rounded,
+                      color: Colors.black87,
+                      size: 30,
+                    ),
+                    title: Text(
+                      "Logout",
+                      style: TextStyle(color: Colors.black87),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
