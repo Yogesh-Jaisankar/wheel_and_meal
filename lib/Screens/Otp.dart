@@ -22,19 +22,19 @@ class _OtpInputPageState extends State<OtpInputPage> {
 
   void onOtpVerification(dynamic result) async {
     if (result != null && result['statusCode'] == 200) {
-      // Save the authentication status
+      if (!mounted) return; // Check if widget is still mounted
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
 
-      // Navigate to home on successful OTP verification
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Home()),
       );
     } else {
-      // Handle error case
       debugPrint("OTP verification failed: $result");
-      // Optionally show a message to the user
+      if (!mounted) return; // Ensure mounted before showing snackbar
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('OTP verification failed. Please try again.')),
       );

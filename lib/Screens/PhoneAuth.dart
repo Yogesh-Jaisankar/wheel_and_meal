@@ -67,6 +67,9 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
 
   void onHeadlessResult(dynamic result) {
     debugPrint("Phone auth response: $result");
+
+    if (!mounted) return; // Check if widget is still mounted
+
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -108,6 +111,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
       };
 
       await _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
+      print("Otpless headless started successfully");
     } catch (e) {
       debugPrint("Error starting phone auth: $e");
       // Optionally show an error message to the user
