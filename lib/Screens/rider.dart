@@ -37,7 +37,7 @@ class _RiderState extends State<Rider> {
   List<dynamic> _suggestions = [];
   final TextEditingController _searchController = TextEditingController();
   final String _apiKey =
-      'AIzaSyA8njHoIZmi21e6roCJP41OsvGLAnIG6Ug'; // Replace with your API key
+      'AIzaSyA2Nqezz1idcqRvJRXEu68O7t2aJC99Tyw'; // Replace with your API key
   Set<Polyline> _polylines = {};
 
   String _distance = '';

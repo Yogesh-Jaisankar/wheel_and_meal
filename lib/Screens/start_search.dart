@@ -16,7 +16,7 @@ class StartSearch extends StatefulWidget {
 
 class _StartSearchState extends State<StartSearch> {
   TextEditingController _locationController = TextEditingController();
-  final String _googleApiKey = 'AIzaSyA8njHoIZmi21e6roCJP41OsvGLAnIG6Ug';
+  final String _googleApiKey = 'AIzaSyA2Nqezz1idcqRvJRXEu68O7t2aJC99Tyw';
   List<dynamic> _suggestions = [];
   Position? _currentPosition;
   bool _isLoading = false;
