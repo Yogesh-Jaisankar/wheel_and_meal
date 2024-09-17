@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import for formatting dates
 import 'package:lottie/lottie.dart';
-import 'package:mongo_dart/mongo_dart.dart'
-    as mongo; // Adjust the import based on your directory structure
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wheel_and_meal/Screens/PhoneAuth.dart';
 import 'package:wheel_and_meal/Screens/edituserdetails.dart';
@@ -16,13 +16,12 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   String? name;
   String? phoneNumber;
+  String? memberSinceDate;
 
   Future<void> _logout() async {
-    // Clear the authentication status
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false); // Set login status to false
+    await prefs.setBool('isLoggedIn', false);
 
-    // Navigate back to the phone input page
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => PhoneInputPage()),
@@ -32,19 +31,17 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    _loadPhoneNumber(); // Load phone number on initialization
+    _loadPhoneNumber();
   }
 
   Future<void> _loadPhoneNumber() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    phoneNumber = prefs.getString('phoneNumber'); // Retrieve phone number
+    phoneNumber = prefs.getString('phoneNumber');
     if (phoneNumber != null) {
-      await _fetchUserDetails(phoneNumber!); // Fetch user details
+      await _fetchUserDetails(phoneNumber!);
     }
     setState(() {});
   }
-
-  String? memberSinceDate;
 
   Future<void> _fetchUserDetails(String phoneNumber) async {
     var db = await mongo.Db.create(
@@ -53,7 +50,6 @@ class _ProfileState extends State<Profile> {
     var collection = db.collection('users');
 
     try {
-      // Query for the user with the given phone number
       var user = await collection.findOne({'_id': phoneNumber});
 
       if (user != null) {
@@ -61,16 +57,15 @@ class _ProfileState extends State<Profile> {
           name = user['name']; // Update the state with the user name
 
           // Check if the user has a createdAt field
-          if (user.containsKey('createdAt')) {
-            DateTime memberSince = user['createdAt'] as DateTime;
-            memberSinceDate = "${memberSince.month}/${memberSince.year}";
+          if (user['createdAt'] is DateTime) {
+            DateTime memberSince = user['createdAt']; // This is a DateTime
+            memberSinceDate = DateFormat('MMMM yyyy')
+                .format(memberSince); // Format it to "Month Year"
           } else {
-            // Handle missing createdAt field
-            memberSinceDate = "Unknown";
+            memberSinceDate = "Unknown"; // Handle missing or incorrect field
           }
         });
       } else {
-        // Handle the case where user is not found
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('User details not found')),
         );
@@ -111,21 +106,27 @@ class _ProfileState extends State<Profile> {
                   child: Container(
                     height: 150,
                     decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black, // Start with black
-                            Colors
-                                .grey.shade800, // Dark grey for a subtle shine
-                            Colors.grey.shade600, // Lighter grey for more shine
-                            Colors
-                                .black, // End with black for a smooth transition
-                          ],
-                          begin: Alignment
-                              .topLeft, // Control the direction of the gradient
-                          end: Alignment.bottomRight,
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black,
+                          Colors.grey.shade800,
+                          Colors.grey.shade600,
+                          Colors.black,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5), // Shadow color
+                          offset:
+                              Offset(0, 4), // X and Y offsets for the shadow
+                          blurRadius: 8, // Amount of blur
+                          spreadRadius: 2, // How much the shadow spreads
                         ),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all()),
+                      ],
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
