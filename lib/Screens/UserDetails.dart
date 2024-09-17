@@ -85,6 +85,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             ? DateFormat('yyyy-MM-dd').format(selectedDate!)
             : null,
         "age": ageController.text,
+        "createdAt": DateTime.now().toUtc(), // Store the current timestamp
       };
 
       // Insert the document and capture the result

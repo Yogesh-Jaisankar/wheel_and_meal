@@ -44,27 +44,45 @@ class _ProfileState extends State<Profile> {
     setState(() {});
   }
 
+  String? memberSinceDate;
+
   Future<void> _fetchUserDetails(String phoneNumber) async {
     var db = await mongo.Db.create(
         "mongodb+srv://yogesh:7806@cluster0.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=Cluster0");
     await db.open();
     var collection = db.collection('users');
 
-    // Query for the user with the given phone number
-    var user = await collection.findOne({'_id': phoneNumber});
+    try {
+      // Query for the user with the given phone number
+      var user = await collection.findOne({'_id': phoneNumber});
 
-    if (user != null) {
-      setState(() {
-        name = user['name'];
-      });
-    } else {
-      // Handle the case where user is not found
+      if (user != null) {
+        setState(() {
+          name = user['name']; // Update the state with the user name
+
+          // Check if the user has a createdAt field
+          if (user.containsKey('createdAt')) {
+            DateTime memberSince = user['createdAt'] as DateTime;
+            memberSinceDate = "${memberSince.month}/${memberSince.year}";
+          } else {
+            // Handle missing createdAt field
+            memberSinceDate = "Unknown";
+          }
+        });
+      } else {
+        // Handle the case where user is not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User details not found')),
+        );
+      }
+    } catch (e) {
+      // Error handling if something goes wrong with fetching data
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User details not found')),
+        SnackBar(content: Text('Error fetching user details: $e')),
       );
+    } finally {
+      await db.close();
     }
-
-    await db.close();
   }
 
   @override
@@ -132,7 +150,9 @@ class _ProfileState extends State<Profile> {
                                   ),
                                   SizedBox(height: 10),
                                   Text(
-                                    "Member since 2023",
+                                    memberSinceDate != null
+                                        ? "Member since $memberSinceDate"
+                                        : "Loading...",
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.white,
