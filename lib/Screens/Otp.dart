@@ -103,7 +103,6 @@ class _OtpInputPageState extends State<OtpInputPage> {
   }
 
   Future<void> verifyOtp() async {
-    FocusScope.of(context).unfocus();
     if (_formKey.currentState!.validate()) {
       if (_isLoading) return; // Prevent re-entrant calls
       setState(() {
@@ -216,6 +215,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
                       const SizedBox(height: 50),
                       GestureDetector(
                         onTap: () {
+                          FocusScope.of(context).unfocus();
                           verifyOtp();
                         },
                         child: Align(

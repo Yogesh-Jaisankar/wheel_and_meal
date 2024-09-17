@@ -4,7 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
-import 'package:wheel_and_meal/Screens/PhoneAuth.dart';
+import 'package:wheel_and_meal/Screens/Onboard.dart';
 import 'package:wheel_and_meal/Screens/edituserdetails.dart';
 
 class Profile extends StatefulWidget {
@@ -30,8 +30,7 @@ class _ProfileState extends State<Profile> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-          builder: (context) =>
-              PhoneInputPage()), // Replace with your target page
+          builder: (context) => Onboard()), // Replace with your target page
       (Route<dynamic> route) => false, // This clears all previous routes
     );
   }
@@ -102,8 +101,9 @@ class _ProfileState extends State<Profile> {
         centerTitle: true,
         backgroundColor: Colors.white,
         title: Text(
-          "Profile",
-          style: TextStyle(fontSize: 30),
+          "P r o f i l e",
+          style: TextStyle(
+              fontSize: 30, fontFamily: "Raleway", fontWeight: FontWeight.bold),
         ),
         actions: [
           Lottie.asset("assets/userlogo.json", fit: BoxFit.cover),

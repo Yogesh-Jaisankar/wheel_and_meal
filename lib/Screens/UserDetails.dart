@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:toastification/toastification.dart';
 import 'package:wheel_and_meal/Screens/home.dart';
@@ -32,17 +31,6 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         .toString(); // Generates an 8-digit ID
   }
 
-  // Function to calculate the age from DOB
-  int calculateAge(DateTime birthDate) {
-    DateTime today = DateTime.now();
-    int age = today.year - birthDate.year;
-    if (today.month < birthDate.month ||
-        (today.month == birthDate.month && today.day < birthDate.day)) {
-      age--;
-    }
-    return age;
-  }
-
   // Function to open the date picker for DOB selection
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -54,8 +42,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        ageController.text =
-            calculateAge(selectedDate!).toString(); // Calculate and display age
+        // Calculate and display age
       });
     }
   }
@@ -85,7 +72,6 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         "dob": selectedDate != null
             ? DateFormat('yyyy-MM-dd').format(selectedDate!)
             : null,
-        "age": ageController.text,
         "createdAt": DateTime.now().toUtc(), // Store the current timestamp
       };
 
@@ -132,14 +118,26 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   bool validateInputs() {
     if (nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your first name.')),
+      toastification.show(
+        alignment: Alignment.topLeft,
+        context: context, // optional if you use ToastificationWrapper
+        title: Text('Please enter your First name.'),
+        type: ToastificationType.warning,
+        style: ToastificationStyle.flatColored,
+        showProgressBar: false,
+        autoCloseDuration: const Duration(seconds: 2),
       );
       return false;
     }
     if (lastNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your last name.')),
+      toastification.show(
+        alignment: Alignment.topLeft,
+        context: context, // optional if you use ToastificationWrapper
+        title: Text('Please enter your Last name.'),
+        type: ToastificationType.warning,
+        style: ToastificationStyle.flatColored,
+        showProgressBar: false,
+        autoCloseDuration: const Duration(seconds: 2),
       );
       return false;
     }
@@ -175,8 +173,16 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Lottie.asset("assets/user.json", height: 200, width: 200),
+                Text(
+                  "Enter Your Details",
+                  style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "Raleway",
+                      fontSize: 40),
+                ),
                 SizedBox(height: 25),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -194,6 +200,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                                 fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                             controller: nameController,
+                            cursorColor: Colors.black87,
                             decoration: InputDecoration(
                                 hintStyle: TextStyle(color: Colors.black87),
                                 hintText: "First Name",
@@ -219,6 +226,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                                 fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                             controller: lastNameController,
+                            cursorColor: Colors.black87,
                             decoration: InputDecoration(
                                 hintStyle: TextStyle(color: Colors.black87),
                                 hintText: "Last Name",
@@ -228,25 +236,6 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                       ),
                     ),
                   ],
-                ),
-                SizedBox(height: 25),
-                Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black87),
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      style: TextStyle(
-                          color: Colors.black87, fontWeight: FontWeight.bold),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        labelStyle: TextStyle(color: Colors.black87),
-                      ),
-                      controller: phoneController,
-                      enabled: false, // Phone number is not editable
-                    ),
-                  ),
                 ),
                 SizedBox(height: 25),
                 GestureDetector(
@@ -278,45 +267,30 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                   ),
                 ),
                 SizedBox(height: 25),
-                Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black87),
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      style: TextStyle(color: Colors.black87),
-                      controller: ageController,
-                      enabled: false, // Age is auto-calculated
-                      decoration: InputDecoration(
-                          labelStyle: TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.bold),
-                          labelText: "Age",
-                          border: InputBorder.none),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
                     onTap: () async {
+                      FocusScope.of(context).unfocus();
                       if (validateInputs()) {
                         await storeUserData();
                       }
                     },
-                    child: Container(
-                      height: 50,
-                      width: 150,
-                      decoration: BoxDecoration(
-                          color: Colors.black87,
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Center(
-                        child: Text(
-                          "Continue",
-                          style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        height: 50,
+                        width: 150,
+                        decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Center(
+                          child: Text(
+                            "Continue",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
