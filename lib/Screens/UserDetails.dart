@@ -101,7 +101,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           type: ToastificationType.success,
           style: ToastificationStyle.flatColored,
           showProgressBar: false,
-          autoCloseDuration: const Duration(seconds: 1),
+          autoCloseDuration: const Duration(seconds: 2),
         );
 
         Navigator.pushAndRemoveUntil(
@@ -118,7 +118,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           type: ToastificationType.success,
           style: ToastificationStyle.flatColored,
           showProgressBar: false,
-          autoCloseDuration: const Duration(seconds: 1),
+          autoCloseDuration: const Duration(seconds: 2),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

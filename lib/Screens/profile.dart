@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import for formatting dates
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,7 +22,11 @@ class _ProfileState extends State<Profile> {
   Future<void> _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', false);
+    await prefs.remove('phoneNumber'); // Clear stored phone number
+    await prefs.remove('name'); // Clear stored name
+    await prefs.remove('memberSinceDate'); // Clear member since date
 
+    // Use pushReplacement to navigate to PhoneInputPage
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
@@ -42,11 +46,9 @@ class _ProfileState extends State<Profile> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     phoneNumber = prefs.getString('phoneNumber');
 
-    // Load name and member since date from SharedPreferences
     name = prefs.getString('name');
     memberSinceDate = prefs.getString('memberSinceDate');
 
-    // If phone number is not null and user data is not loaded, fetch from database
     if (phoneNumber != null && name == null && memberSinceDate == null) {
       await _fetchUserDetails(phoneNumber!);
     }
@@ -65,19 +67,16 @@ class _ProfileState extends State<Profile> {
 
       if (user != null) {
         setState(() {
-          name = user['name']; // Update the state with the user name
+          name = user['name'];
 
-          // Check if the user has a createdAt field
           if (user['createdAt'] is DateTime) {
-            DateTime memberSince = user['createdAt']; // This is a DateTime
-            memberSinceDate = DateFormat('MMMM yyyy')
-                .format(memberSince); // Format it to "Month Year"
+            DateTime memberSince = user['createdAt'];
+            memberSinceDate = DateFormat('MMMM yyyy').format(memberSince);
           } else {
-            memberSinceDate = "Unknown"; // Handle missing or incorrect field
+            memberSinceDate = "Unknown";
           }
         });
 
-        // Save user data to SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('name', name!);
         await prefs.setString('memberSinceDate', memberSinceDate!);
@@ -87,7 +86,6 @@ class _ProfileState extends State<Profile> {
         );
       }
     } catch (e) {
-      // Error handling if something goes wrong with fetching data
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching user details: $e')),
       );
@@ -135,11 +133,10 @@ class _ProfileState extends State<Profile> {
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.5), // Shadow color
-                          offset:
-                              Offset(0, 4), // X and Y offsets for the shadow
-                          blurRadius: 8, // Amount of blur
-                          spreadRadius: 2, // How much the shadow spreads
+                          color: Colors.black.withOpacity(0.5),
+                          offset: Offset(0, 4),
+                          blurRadius: 8,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
@@ -196,9 +193,8 @@ class _ProfileState extends State<Profile> {
                   onTap: () {
                     toastification.show(
                       alignment: Alignment.bottomCenter,
-                      context:
-                          context, // optional if you use ToastificationWrapper
-                      title: Text('To be imlemented!'),
+                      context: context,
+                      title: Text('To be implemented!'),
                       type: ToastificationType.warning,
                       showProgressBar: false,
                       autoCloseDuration: const Duration(seconds: 2),
@@ -220,9 +216,8 @@ class _ProfileState extends State<Profile> {
                   onTap: () {
                     toastification.show(
                       alignment: Alignment.bottomCenter,
-                      context:
-                          context, // optional if you use ToastificationWrapper
-                      title: Text('To be imlemented!'),
+                      context: context,
+                      title: Text('To be implemented!'),
                       type: ToastificationType.warning,
                       showProgressBar: false,
                       autoCloseDuration: const Duration(seconds: 2),

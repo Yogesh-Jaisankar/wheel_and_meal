@@ -24,7 +24,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
   final _otplessFlutterPlugin = Otpless();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  final FocusNode otpFocusNode = FocusNode(); // Create a FocusNode
+  String? _errorMessage; // State variable for error message
 
   Future<bool> checkIfUserExists(String phoneNumber) async {
     var db = await mongo.Db.create(
@@ -66,21 +66,21 @@ class _OtpInputPageState extends State<OtpInputPage> {
           autoCloseDuration: const Duration(seconds: 2),
         );
 
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => Home(), // Navigate to the home page
-          ),
+              builder: (context) => Home()), // Replace with your target page
+          (Route<dynamic> route) => false, // This clears all previous routes
         );
       } else {
         // If the user doesn't exist, navigate to UserDetailsPage
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => UserDetailsPage(
-              phoneNumber: widget.phoneNumber, // Pass the phone number
-            ),
-          ),
+              builder: (context) => UserDetailsPage(
+                  phoneNumber:
+                      widget.phoneNumber)), // Replace with your target page
+          (Route<dynamic> route) => false, // This clears all previous routes
         );
       }
     } else {
@@ -103,6 +103,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
+        _errorMessage = null; // Reset error message
       });
 
       Map<String, dynamic> arg = {
@@ -115,18 +116,8 @@ class _OtpInputPageState extends State<OtpInputPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Request focus for the OTP input field
-      FocusScope.of(context).requestFocus(otpFocusNode);
-    });
-  }
-
-  @override
   void dispose() {
     otpController.dispose();
-    otpFocusNode.dispose(); // Dispose of the FocusNode
     super.dispose();
   }
 
@@ -173,7 +164,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
                       ),
                       SizedBox(height: 50),
                       Container(
-                        height: 100,
+                        height: 50,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: Colors.black87)),
@@ -181,7 +172,6 @@ class _OtpInputPageState extends State<OtpInputPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
                             controller: otpController,
-                            focusNode: otpFocusNode, // Use the FocusNode
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               focusColor: Colors.black87,
@@ -190,16 +180,34 @@ class _OtpInputPageState extends State<OtpInputPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter the OTP';
+                                setState(() {
+                                  _errorMessage = 'Please enter the OTP';
+                                });
+                                return '';
                               }
                               if (value.length != 6) {
-                                return 'OTP must be 6 digits';
+                                setState(() {
+                                  _errorMessage = 'OTP must be 6 digits';
+                                });
+                                return '';
                               }
                               return null;
                             },
                           ),
                         ),
                       ),
+                      // Display the error message separately
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 50),
                       GestureDetector(
                         onTap: () {
@@ -222,17 +230,6 @@ class _OtpInputPageState extends State<OtpInputPage> {
                           ),
                         ),
                       ),
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.center,
-                      //   children: [
-                      //     Text("Wrong Number?"),
-                      //     SizedBox(width: 5),
-                      //     Icon(
-                      //       size: 20,
-                      //       Icons.mode_edit_outlined,
-                      //     ),
-                      //   ],
-                      // ),
                     ],
                   ),
                 ),
