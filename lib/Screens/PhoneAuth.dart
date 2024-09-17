@@ -120,7 +120,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Lottie.asset("assets/cycle.json"),
+                // Lottie.asset("assets/cycle.json"),
                 const SizedBox(height: 30),
                 Container(
                   height: 100,

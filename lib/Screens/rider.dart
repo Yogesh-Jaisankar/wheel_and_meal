@@ -316,6 +316,7 @@ class _RiderState extends State<Rider> {
                         FocusScope.of(context).unfocus();
                       },
                       child: GoogleMap(
+                        zoomControlsEnabled: false,
                         myLocationEnabled: true,
                         myLocationButtonEnabled: false,
                         onMapCreated: (GoogleMapController controller) {
@@ -492,14 +493,14 @@ class _RiderState extends State<Rider> {
             ),
           if (_showRouteInfo)
             Positioned(
-              bottom: 80,
+              bottom: 100,
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => Bookride()));
                 },
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(10),
                   child: Container(
                     height: 50,
                     width: 200,
@@ -522,16 +523,21 @@ class _RiderState extends State<Rider> {
                 ),
               ),
             ),
+          Positioned(
+            bottom: 110,
+            right: 20,
+            child: Container(
+              height: 50,
+              width: 50,
+              child: FloatingActionButton(
+                enableFeedback: true,
+                backgroundColor: Colors.black87,
+                onPressed: _recenterMap,
+                child: Icon(Icons.my_location, color: Colors.white),
+              ),
+            ),
+          ),
         ],
-      ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: 50, right: 10),
-        child: FloatingActionButton(
-          enableFeedback: true,
-          backgroundColor: Colors.black87,
-          onPressed: _recenterMap,
-          child: Icon(Icons.my_location, color: Colors.white),
-        ),
       ),
     );
   }
