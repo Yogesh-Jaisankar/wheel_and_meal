@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import 'package:wheel_and_meal/Screens/PhoneAuth.dart';
 
 class Onboard extends StatefulWidget {
@@ -15,13 +17,14 @@ class _OnboardState extends State<Onboard> {
       backgroundColor: Colors.black87,
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Lottie.asset("assets/cycle.json", height: 300, width: 300),
             Image.asset(
               "assets/icons/wm.png",
-              height: 250,
-              width: 250,
+              height: 200,
+              width: 200,
             ),
             Text(
               "Wheel And Meal",
@@ -36,6 +39,7 @@ class _OnboardState extends State<Onboard> {
               padding: const EdgeInsets.all(8.0),
               child: GestureDetector(
                 onTap: () {
+                  HapticFeedback.heavyImpact();
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(

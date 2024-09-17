@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:otpless_flutter/otpless_flutter.dart';
+import 'package:toastification/toastification.dart';
 
 import 'Otp.dart';
 
@@ -61,6 +62,20 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
   Future<void> startPhoneAuth() async {
     // Hide keyboard
     FocusScope.of(context).unfocus();
+
+    // Check if phone number is exactly 10 digits
+    if (phoneController.text.length != 10) {
+      toastification.show(
+        alignment: Alignment.topLeft,
+        context: context,
+        title: Text('Please enter a valid phone number'),
+        type: ToastificationType.warning,
+        style: ToastificationStyle.flatColored,
+        showProgressBar: false,
+        autoCloseDuration: const Duration(seconds: 2),
+      );
+      return; // Stop execution if validation fails
+    }
 
     // Start showing loading indicator
     setState(() {
@@ -142,11 +157,13 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.black87)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.black87, width: .5),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: TextFormField(
+                      style: TextStyle(fontWeight: FontWeight.bold),
                       maxLength: 10,
                       maxLines: 1,
                       cursorColor: Colors.black87,
@@ -172,7 +189,8 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                       TextSpan(
                         text: "Read our ",
                         style: TextStyle(
-                          fontWeight: FontWeight.w300,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: "Raleway",
                           color: Colors.black,
                         ),
                       ),
@@ -180,6 +198,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                         text: "Privacy and Policy",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          fontFamily: "Raleway",
                           color: Colors.black,
                         ),
                         recognizer: TapGestureRecognizer()
@@ -194,7 +213,8 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                       TextSpan(
                         text: " and Tap Agree and continue to accept our ",
                         style: TextStyle(
-                          fontWeight: FontWeight.w300,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: "Raleway",
                           color: Colors.black,
                         ),
                       ),
@@ -202,6 +222,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                         text: "Terms and Conditions",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          fontFamily: "Raleway",
                           color: Colors.black,
                         ),
                         recognizer: TapGestureRecognizer()
@@ -227,12 +248,17 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                               8.0), // Optional: Adjust the border radius
                         ),
                         child: CupertinoButton(
-                          onPressed: startPhoneAuth,
+                          onPressed: () {
+                            HapticFeedback.heavyImpact();
+                            startPhoneAuth();
+                          },
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16.0, vertical: 10.0),
                           child: const Text(
                             "Agree and Continue",
                             style: TextStyle(
+                                fontFamily: "Raleway",
+                                fontWeight: FontWeight.bold,
                                 color: CupertinoColors
                                     .white), // Text color set to white
                           ),
@@ -259,7 +285,13 @@ void _showDialog(BuildContext context, String title, String content) {
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: Colors.white,
-        title: Text(title),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontFamily: "Raleway",
+          ),
+        ),
         content: SingleChildScrollView(child: Text(content)),
         actions: [
           TextButton(

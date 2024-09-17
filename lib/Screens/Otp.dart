@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:otpless_flutter/otpless_flutter.dart';
@@ -165,17 +166,17 @@ class _OtpInputPageState extends State<OtpInputPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        "via Whatsapp",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      // Text(
+                      //   "via Whatsapp",
+                      //   style: TextStyle(
+                      //     fontSize: 12,
+                      //     color: Colors.black87,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
                       SizedBox(height: 50),
                       Container(
-                        height: 50,
+                        height: 60,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: Colors.black87)),
@@ -223,6 +224,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
                       GestureDetector(
                         onTap: () {
                           FocusScope.of(context).unfocus();
+                          HapticFeedback.heavyImpact();
                           verifyOtp();
                         },
                         child: Align(

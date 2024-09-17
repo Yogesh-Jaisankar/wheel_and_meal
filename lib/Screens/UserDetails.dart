@@ -1,6 +1,5 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
@@ -25,17 +24,99 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   bool isLoading = false; // To track the loading state
 
-  String generateUserId() {
-    var random = Random();
-    return (10000000 + random.nextInt(90000000)).toString();
-  }
-
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime(2000),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+              dialogBackgroundColor: Colors.white,
+              textTheme: TextTheme(
+                  headlineSmall: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  headlineLarge: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  headlineMedium: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  bodyMedium: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  bodySmall: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  bodyLarge: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  titleLarge: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  titleMedium: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  titleSmall: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  labelLarge: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  labelMedium: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  labelSmall: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  displayLarge: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  displayMedium: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  displaySmall: TextStyle(
+                      fontSize: 24,
+                      fontFamily: "Raleway",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black)),
+              colorScheme: ColorScheme.light(
+                  surface: Colors.white,
+                  onSurface: Colors.black87,
+                  primary: Colors.black87)),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != selectedDate) {
       setState(() {
@@ -186,13 +267,15 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                                border: Border.all(color: Colors.black87),
+                                border: Border.all(
+                                    color: Colors.black87, width: .5),
                                 borderRadius: BorderRadius.circular(10)),
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextFormField(
                                 style: TextStyle(
                                     color: Colors.black87,
+                                    fontFamily: "Raleway",
                                     fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.center,
                                 controller: nameController,
@@ -210,13 +293,15 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                                border: Border.all(color: Colors.black87),
+                                border: Border.all(
+                                    color: Colors.black87, width: .5),
                                 borderRadius: BorderRadius.circular(10)),
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextFormField(
                                 style: TextStyle(
                                     color: Colors.black87,
+                                    fontFamily: "Raleway",
                                     fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.center,
                                 controller: lastNameController,
@@ -233,11 +318,15 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                     ),
                     SizedBox(height: 25),
                     GestureDetector(
-                      onTap: () => _selectDate(context),
+                      onTap: () {
+                        HapticFeedback.heavyImpact();
+                        _selectDate(context);
+                      },
                       child: AbsorbPointer(
                         child: Container(
                           decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black87),
+                              border:
+                                  Border.all(color: Colors.black87, width: .5),
                               borderRadius: BorderRadius.circular(10)),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -248,6 +337,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                               decoration: InputDecoration(
                                 labelStyle: TextStyle(
                                     color: Colors.black87,
+                                    fontFamily: "Raleway",
                                     fontWeight: FontWeight.bold),
                                 border: InputBorder.none,
                                 labelText: selectedDate == null
@@ -283,6 +373,8 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                                 "Continue",
                                 style: TextStyle(
                                     color: Colors.white,
+                                    fontFamily: "Raleway",
+                                    fontSize: 20,
                                     fontWeight: FontWeight.bold),
                               ),
                             ),

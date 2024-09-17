@@ -101,13 +101,13 @@ class _ProfileState extends State<Profile> {
         centerTitle: true,
         backgroundColor: Colors.white,
         title: Text(
-          "P r o f i l e",
+          "P R O F I L E",
           style: TextStyle(
-              fontSize: 30, fontFamily: "Raleway", fontWeight: FontWeight.bold),
+              fontSize: 20, fontFamily: "Raleway", fontWeight: FontWeight.bold),
         ),
-        actions: [
-          Lottie.asset("assets/userlogo.json", fit: BoxFit.cover),
-        ],
+        // actions: [
+        //   Lottie.asset("assets/userlogo.json", fit: BoxFit.cover),
+        // ],
       ),
       body: Center(
         child: Padding(
