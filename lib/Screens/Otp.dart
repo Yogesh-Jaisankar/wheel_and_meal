@@ -38,6 +38,8 @@ class _OtpInputPageState extends State<OtpInputPage> {
     return existingUser != null;
   }
 
+  bool _navigated = false; // Add this variable to track navigation status
+
   void onOtpVerification(dynamic result) async {
     if (!mounted) return;
     setState(() {
@@ -52,10 +54,19 @@ class _OtpInputPageState extends State<OtpInputPage> {
       // Check if the phone number exists in the database
       bool userExists = await checkIfUserExists(widget.phoneNumber);
 
-      if (!mounted) return;
+      if (!mounted || _navigated) return; // Prevent multiple navigations
+
+      _navigated = true; // Set the flag to true to prevent future navigation
 
       if (userExists) {
         // If the user exists, navigate to HomePage
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (context) => Home()), // Replace with your target page
+          (Route<dynamic> route) => false, // This clears all previous routes
+        );
+
         toastification.show(
           alignment: Alignment.bottomCenter,
           context: context, // optional if you use ToastificationWrapper
@@ -64,13 +75,6 @@ class _OtpInputPageState extends State<OtpInputPage> {
           style: ToastificationStyle.flatColored,
           showProgressBar: false,
           autoCloseDuration: const Duration(seconds: 2),
-        );
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Home()), // Replace with your target page
-          (Route<dynamic> route) => false, // This clears all previous routes
         );
       } else {
         // If the user doesn't exist, navigate to UserDetailsPage
@@ -101,6 +105,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
   Future<void> verifyOtp() async {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState!.validate()) {
+      if (_isLoading) return; // Prevent re-entrant calls
       setState(() {
         _isLoading = true;
         _errorMessage = null; // Reset error message
