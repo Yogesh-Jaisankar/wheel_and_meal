@@ -10,6 +10,11 @@ class Grocery extends StatefulWidget {
 class _GroceryState extends State<Grocery> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Text("groceries"),
+      ),
+    );
   }
 }

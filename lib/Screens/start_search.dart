@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
 
-import 'confirm_pickup.dart'; // Import the ConfirmPickup page
+import 'confirm_pickup.dart';
 
 class StartSearch extends StatefulWidget {
   const StartSearch({super.key});
@@ -309,26 +310,28 @@ class _StartSearchState extends State<StartSearch> {
           ),
           if (_isLoading)
             Center(
-              child: Column(
-                children: [
-                  Container(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        "assets/icons/wm.png",
-                        height: 80,
-                        width: 80,
-                      ),
+              child: Container(
+                // Set constraints to center the loading indicator
+                width: double.infinity,
+                height: double.infinity,
+                color:
+                    Colors.white.withOpacity(0.8), // Optional: add a background
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      child: Lottie.asset("assets/mapload.json",
+                          height: 100, width: 100),
                     ),
-                  ),
-                  Text(
-                    "Loading",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: "Raleway"),
-                  )
-                ],
+                    Text(
+                      "Loading",
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "Raleway"),
+                    )
+                  ],
+                ),
               ),
             ),
         ],

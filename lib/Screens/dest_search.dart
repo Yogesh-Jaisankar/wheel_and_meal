@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
 import 'package:wheel_and_meal/Screens/confirm_drop.dart';
 
 class DestSearch extends StatefulWidget {
@@ -11,10 +12,10 @@ class DestSearch extends StatefulWidget {
   final String pickupAddress;
 
   const DestSearch({
-    super.key,
+    Key? key,
     required this.selectedLocation,
     required this.pickupAddress,
-  });
+  }) : super(key: key);
 
   @override
   State<DestSearch> createState() => _DestSearchState();
@@ -55,7 +56,12 @@ class _DestSearchState extends State<DestSearch> {
   }
 
   Future<void> _getSuggestions(String input) async {
-    if (input.isEmpty || _currentPosition == null) return;
+    if (input.isEmpty || _currentPosition == null) {
+      setState(() {
+        _suggestions = []; // Clear suggestions if input is empty
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -127,6 +133,7 @@ class _DestSearchState extends State<DestSearch> {
         ),
       ),
       body: Column(
+        // Changed Stack to Column
         children: [
           Padding(
             padding: const EdgeInsets.all(20.0),
@@ -180,14 +187,11 @@ class _DestSearchState extends State<DestSearch> {
                   child: Column(
                     children: [
                       Container(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset(
-                            "assets/icons/wm.png",
-                            height: 80,
-                            width: 80,
-                          ),
-                        ),
+                        child: Lottie.asset("assets/mapload.json",
+                            height: 100, width: 100),
+                      ),
+                      SizedBox(
+                        height: 10,
                       ),
                       Text(
                         "Loading",
@@ -197,7 +201,7 @@ class _DestSearchState extends State<DestSearch> {
                             fontFamily: "Raleway"),
                       )
                     ],
-                  ), // Loading indicator
+                  ),
                 )
               : Expanded(
                   child: ListView.builder(

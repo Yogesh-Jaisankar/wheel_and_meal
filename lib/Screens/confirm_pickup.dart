@@ -126,28 +126,25 @@ class _ConfirmPickupState extends State<ConfirmPickup> {
                   position, "New Location"); // Example: Use a placeholder name
             },
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                  height: 50,
-                  width: 250,
-                  decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Center(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.warning,
-                        color: Colors.white,
-                      ),
-                      title: Text(
-                        "Tap to select location",
-                        style: TextStyle(color: Colors.white),
-                      ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Center(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.warning,
+                      color: Colors.white,
                     ),
-                  )),
-            ),
+                    title: Text(
+                      "Tap to select location",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                )),
           ),
           Padding(
             padding: const EdgeInsets.all(25.0),

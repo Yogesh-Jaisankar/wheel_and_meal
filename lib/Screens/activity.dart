@@ -10,6 +10,11 @@ class Activity extends StatefulWidget {
 class _ActivityState extends State<Activity> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Text("Activity"),
+      ),
+    );
   }
 }

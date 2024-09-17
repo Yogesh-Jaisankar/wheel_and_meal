@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
-import 'package:wheel_and_meal/Screens/bookride.dart';
+import 'package:lottie/lottie.dart' as Lot;
+import 'package:toastification/toastification.dart';
 import 'package:wheel_and_meal/Screens/dest_search.dart';
 import 'package:wheel_and_meal/Screens/start_search.dart';
 
@@ -283,14 +284,8 @@ class _RiderState extends State<Rider> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.asset(
-                          "assets/icons/wm.png",
-                          height: 80,
-                          width: 80,
-                        ),
-                      ),
+                      child: Lot.Lottie.asset("assets/mapload.json",
+                          height: 100, width: 100),
                     ),
                     SizedBox(height: 10),
                     Text(
@@ -493,14 +488,25 @@ class _RiderState extends State<Rider> {
             ),
           if (_showRouteInfo)
             Positioned(
-              bottom: 100,
+              bottom: 50,
+              left: 50,
+              right: 50,
               child: GestureDetector(
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Bookride()));
+                  // Navigator.push(context,
+                  //     MaterialPageRoute(builder: (context) => Bookride()));
+                  toastification.show(
+                    alignment: Alignment.bottomCenter,
+                    context:
+                        context, // optional if you use ToastificationWrapper
+                    title: Text('To be imlemented!'),
+                    type: ToastificationType.warning,
+                    showProgressBar: false,
+                    autoCloseDuration: const Duration(seconds: 2),
+                  );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   child: Container(
                     height: 50,
                     width: 200,
@@ -524,7 +530,7 @@ class _RiderState extends State<Rider> {
               ),
             ),
           Positioned(
-            bottom: 110,
+            bottom: 150,
             right: 20,
             child: Container(
               height: 50,

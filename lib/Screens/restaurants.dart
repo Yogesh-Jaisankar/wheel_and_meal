@@ -12,8 +12,9 @@ class _RestaurantsState extends State<Restaurants> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
-        child: Text("Res"),
+        child: Text("Restaurants"),
       ),
     );
   }
