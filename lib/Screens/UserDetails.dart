@@ -147,14 +147,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       );
       return false;
     }
-    if (ageController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Please calculate your age by selecting your date of birth.')),
-      );
-      return false;
-    }
+
     return true;
   }
 
