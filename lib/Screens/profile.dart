@@ -31,15 +31,22 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    _loadPhoneNumber();
+    _loadUserData();
   }
 
-  Future<void> _loadPhoneNumber() async {
+  Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     phoneNumber = prefs.getString('phoneNumber');
-    if (phoneNumber != null) {
+
+    // Load name and member since date from SharedPreferences
+    name = prefs.getString('name');
+    memberSinceDate = prefs.getString('memberSinceDate');
+
+    // If phone number is not null and user data is not loaded, fetch from database
+    if (phoneNumber != null && name == null && memberSinceDate == null) {
       await _fetchUserDetails(phoneNumber!);
     }
+
     setState(() {});
   }
 
@@ -65,6 +72,11 @@ class _ProfileState extends State<Profile> {
             memberSinceDate = "Unknown"; // Handle missing or incorrect field
           }
         });
+
+        // Save user data to SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('name', name!);
+        await prefs.setString('memberSinceDate', memberSinceDate!);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('User details not found')),
