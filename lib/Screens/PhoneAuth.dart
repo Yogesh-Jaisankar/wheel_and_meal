@@ -24,6 +24,8 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
   bool isLoading = false; // Loading state
   static const String appId = "H36KQYXL24MCA0LISYA9";
 
+  final FocusNode _phoneFocusNode = FocusNode(); // Create a FocusNode
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +35,11 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
       _otplessFlutterPlugin.setHeadlessCallback(onHeadlessResult);
       debugPrint("init headless sdk is called for android");
     }
+
+    // Request focus to open the keyboard
+    Future.delayed(Duration(milliseconds: 100), () {
+      FocusScope.of(context).requestFocus(_phoneFocusNode);
+    });
   }
 
   void onHeadlessResult(dynamic result) {
@@ -104,6 +111,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
   @override
   void dispose() {
     timer?.cancel();
+    _phoneFocusNode.dispose(); // Dispose of the FocusNode
     super.dispose();
   }
 
@@ -120,7 +128,6 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Lottie.asset("assets/cycle.json"),
                 const SizedBox(height: 30),
                 Container(
                   height: 100,
@@ -145,6 +152,7 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
                       cursorColor: Colors.black87,
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
+                      focusNode: _phoneFocusNode, // Set the FocusNode
                       decoration: InputDecoration(
                           hintText: "Phone Number",
                           border: InputBorder.none,

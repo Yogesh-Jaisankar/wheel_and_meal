@@ -3,6 +3,7 @@ import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:otpless_flutter/otpless_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:toastification/toastification.dart';
 
 import 'UserDetails.dart';
 import 'home.dart'; // Import your HomePage here
@@ -23,6 +24,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
   final _otplessFlutterPlugin = Otpless();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  final FocusNode otpFocusNode = FocusNode(); // Create a FocusNode
 
   Future<bool> checkIfUserExists(String phoneNumber) async {
     var db = await mongo.Db.create(
@@ -54,6 +56,16 @@ class _OtpInputPageState extends State<OtpInputPage> {
 
       if (userExists) {
         // If the user exists, navigate to HomePage
+        toastification.show(
+          alignment: Alignment.bottomCenter,
+          context: context, // optional if you use ToastificationWrapper
+          title: Text("Welcome back!"),
+          type: ToastificationType.success,
+          style: ToastificationStyle.flatColored,
+          showProgressBar: false,
+          autoCloseDuration: const Duration(seconds: 2),
+        );
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -74,13 +86,20 @@ class _OtpInputPageState extends State<OtpInputPage> {
     } else {
       debugPrint("OTP verification failed: $result");
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('OTP verification failed. Please try again.')),
+      toastification.show(
+        alignment: Alignment.bottomCenter,
+        context: context, // optional if you use ToastificationWrapper
+        title: Text('OTP verification failed. Please try again.'),
+        type: ToastificationType.error,
+        style: ToastificationStyle.flat,
+        showProgressBar: false,
+        autoCloseDuration: const Duration(seconds: 2),
       );
     }
   }
 
   Future<void> verifyOtp() async {
+    FocusScope.of(context).unfocus();
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -96,8 +115,18 @@ class _OtpInputPageState extends State<OtpInputPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Request focus for the OTP input field
+      FocusScope.of(context).requestFocus(otpFocusNode);
+    });
+  }
+
+  @override
   void dispose() {
     otpController.dispose();
+    otpFocusNode.dispose(); // Dispose of the FocusNode
     super.dispose();
   }
 
@@ -115,16 +144,13 @@ class _OtpInputPageState extends State<OtpInputPage> {
                   key: _formKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        child: Lottie.asset("assets/whatsapp.json",
-                            height: 200, width: 400),
-                      ),
                       SizedBox(height: 20),
                       Text(
                         "OTP has been sent to ",
                         style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 35,
                             color: Colors.black87,
                             fontWeight: FontWeight.bold,
                             fontFamily: "Raleway"),
@@ -132,7 +158,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
                       Text(
                         widget.phoneNumber,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 20,
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
                         ),
@@ -155,6 +181,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
                             controller: otpController,
+                            focusNode: otpFocusNode, // Use the FocusNode
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               focusColor: Colors.black87,
@@ -178,31 +205,34 @@ class _OtpInputPageState extends State<OtpInputPage> {
                         onTap: () {
                           verifyOtp();
                         },
-                        child: Container(
-                          height: 50,
-                          width: 100,
-                          decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Center(
-                            child: Text(
-                              "CONFIRM",
-                              style: TextStyle(color: Colors.white),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            height: 50,
+                            width: 100,
+                            decoration: BoxDecoration(
+                                color: Colors.black87,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Center(
+                              child: Text(
+                                "CONFIRM",
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Wrong Number?"),
-                          SizedBox(width: 5),
-                          Icon(
-                            size: 20,
-                            Icons.mode_edit_outlined,
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: [
+                      //     Text("Wrong Number?"),
+                      //     SizedBox(width: 5),
+                      //     Icon(
+                      //       size: 20,
+                      //       Icons.mode_edit_outlined,
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),

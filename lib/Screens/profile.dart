@@ -23,9 +23,12 @@ class _ProfileState extends State<Profile> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', false);
 
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => PhoneInputPage()),
+      MaterialPageRoute(
+          builder: (context) =>
+              PhoneInputPage()), // Replace with your target page
+      (Route<dynamic> route) => false, // This clears all previous routes
     );
   }
 

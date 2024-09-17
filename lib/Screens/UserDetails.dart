@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:toastification/toastification.dart';
 import 'package:wheel_and_meal/Screens/home.dart';
 
 class UserDetailsPage extends StatefulWidget {
@@ -93,8 +94,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
       // Check if the insert was successful
       if (result.isSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User details saved successfully!')),
+        toastification.show(
+          alignment: Alignment.bottomCenter,
+          context: context, // optional if you use ToastificationWrapper
+          title: Text('User details saved successfully!'),
+          type: ToastificationType.success,
+          style: ToastificationStyle.flatColored,
+          showProgressBar: false,
+          autoCloseDuration: const Duration(seconds: 1),
         );
 
         Navigator.pushAndRemoveUntil(
@@ -102,6 +109,16 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           MaterialPageRoute(
               builder: (context) => Home()), // Replace with your target page
           (Route<dynamic> route) => false, // This clears all previous routes
+        );
+
+        toastification.show(
+          alignment: Alignment.bottomCenter,
+          context: context, // optional if you use ToastificationWrapper
+          title: Text("Welcome, ${nameController.text}"),
+          type: ToastificationType.success,
+          style: ToastificationStyle.flatColored,
+          showProgressBar: false,
+          autoCloseDuration: const Duration(seconds: 1),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
