@@ -32,7 +32,7 @@ class _UserDetailsEditState extends State<UserDetailsEdit> {
 
   Future<void> _fetchUserDetails(String phoneNumber) async {
     var db = await mongo.Db.create(
-        "mongodb+srv://yogesh:7806@cluster0.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=Cluster0");
+        "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=wm");
     await db.open();
     var collection = db.collection('users');
 

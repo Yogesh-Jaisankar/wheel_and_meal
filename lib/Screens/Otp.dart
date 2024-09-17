@@ -28,7 +28,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
 
   Future<bool> checkIfUserExists(String phoneNumber) async {
     var db = await mongo.Db.create(
-        "mongodb+srv://yogesh:7806@cluster0.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=Cluster0");
+        "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=wm");
     await db.open();
     var collection = db.collection('users');
 
@@ -42,9 +42,6 @@ class _OtpInputPageState extends State<OtpInputPage> {
 
   void onOtpVerification(dynamic result) async {
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
 
     if (result != null && result['statusCode'] == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -69,7 +66,7 @@ class _OtpInputPageState extends State<OtpInputPage> {
 
         toastification.show(
           alignment: Alignment.bottomCenter,
-          context: context, // optional if you use ToastificationWrapper
+          context: context,
           title: Text("Welcome back!"),
           type: ToastificationType.success,
           style: ToastificationStyle.flatColored,
@@ -86,13 +83,23 @@ class _OtpInputPageState extends State<OtpInputPage> {
                       widget.phoneNumber)), // Replace with your target page
           (Route<dynamic> route) => false, // This clears all previous routes
         );
+
+        // Remove loading state after navigating
+        setState(() {
+          _isLoading = false;
+        });
       }
     } else {
       debugPrint("OTP verification failed: $result");
       if (!mounted) return;
+
+      setState(() {
+        _isLoading = false; // Stop loading on failure
+      });
+
       toastification.show(
         alignment: Alignment.bottomCenter,
-        context: context, // optional if you use ToastificationWrapper
+        context: context,
         title: Text('OTP verification failed. Please try again.'),
         type: ToastificationType.error,
         style: ToastificationStyle.flat,
