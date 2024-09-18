@@ -31,6 +31,34 @@ class _SearchState extends State<Search> {
   TextEditingController _pickupController = TextEditingController();
   TextEditingController _dropoffController = TextEditingController();
 
+  Future<LatLng> _getLatLngFromPlaceId(String placeId) async {
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_apiKey');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final location = data['result']['geometry']['location'];
+      return LatLng(location['lat'], location['lng']);
+    } else {
+      throw Exception('Failed to get LatLng from place ID');
+    }
+  }
+
+  Future<String> _getCurrentAddress(LatLng coordinates) async {
+    final response = await http.get(Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${coordinates.latitude},${coordinates.longitude}&key=$_apiKey'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final address = data['results'][0]['formatted_address'];
+      return address;
+    } else {
+      throw Exception('Failed to load address');
+    }
+  }
+
   Future<void> _getLocation() async {
     Location location = Location();
 
@@ -265,7 +293,7 @@ class _SearchState extends State<Search> {
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 12),
                                   ),
-                                  onTap: () {
+                                  onTap: () async {
                                     FocusScope.of(context).unfocus();
                                     setModalState(() {
                                       _pickupController.text = description;
@@ -273,6 +301,14 @@ class _SearchState extends State<Search> {
                                       _bottomSheetHeight =
                                           0.3; // Minimize height
                                     });
+                                    final placeId =
+                                        suggestion['place_id'] ?? '';
+                                    final LatLng selectedLocation =
+                                        await _getLatLngFromPlaceId(placeId);
+                                    _mapController.animateCamera(
+                                      CameraUpdate.newLatLngZoom(
+                                          selectedLocation, 16),
+                                    );
                                   },
                                 ),
                                 const Divider(color: Colors.white30),
@@ -294,7 +330,7 @@ class _SearchState extends State<Search> {
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 12),
                                   ),
-                                  onTap: () {
+                                  onTap: () async {
                                     FocusScope.of(context).unfocus();
                                     setModalState(() {
                                       _dropoffController.text = description;
@@ -302,6 +338,14 @@ class _SearchState extends State<Search> {
                                       _bottomSheetHeight =
                                           0.3; // Minimize height
                                     });
+                                    final placeId =
+                                        suggestion['place_id'] ?? '';
+                                    final LatLng selectedLocation =
+                                        await _getLatLngFromPlaceId(placeId);
+                                    _mapController.animateCamera(
+                                      CameraUpdate.newLatLngZoom(
+                                          selectedLocation, 16),
+                                    );
                                   },
                                 ),
                                 const Divider(color: Colors.white30),
@@ -319,34 +363,6 @@ class _SearchState extends State<Search> {
         );
       },
     );
-  }
-
-  Future<LatLng> _getLatLngFromPlaceId(String placeId) async {
-    final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_apiKey');
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final location = data['result']['geometry']['location'];
-      return LatLng(location['lat'], location['lng']);
-    } else {
-      throw Exception('Failed to get LatLng from place ID');
-    }
-  }
-
-  Future<String> _getCurrentAddress(LatLng coordinates) async {
-    final response = await http.get(Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${coordinates.latitude},${coordinates.longitude}&key=$_apiKey'));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final address = data['results'][0]['formatted_address'];
-      return address;
-    } else {
-      throw Exception('Failed to load address');
-    }
   }
 
   @override
@@ -406,24 +422,16 @@ class _SearchState extends State<Search> {
                         polylines: _polylines,
                       ),
                     ),
-          // Positioned(
-          //   top: 16,
-          //   right: 16,
-          //   child: FloatingActionButton(
-          //     backgroundColor: Colors.green,
-          //     onPressed: () {
-          //       if (_currentLocation != null) {
-          //         _mapController.animateCamera(
-          //           CameraUpdate.newLatLngZoom(_currentLocation!, 16),
-          //         );
-          //       }
-          //     },
-          //     child: const Icon(
-          //       Icons.my_location,
-          //       color: Colors.white,
-          //     ),
-          //   ),
-          // ),
+          Positioned(
+            child: Align(
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.location_on,
+                size: 40,
+                color: Colors.red, // Marker color
+              ),
+            ),
+          ),
         ],
       ),
     );
