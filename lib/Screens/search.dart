@@ -402,7 +402,7 @@ class _SearchState extends State<Search> {
                       child: GoogleMap(
                         buildingsEnabled: true,
                         trafficEnabled: true,
-                        mapType: MapType.hybrid,
+                        mapType: MapType.normal,
                         zoomControlsEnabled: false,
                         myLocationEnabled: true,
                         myLocationButtonEnabled: false,
