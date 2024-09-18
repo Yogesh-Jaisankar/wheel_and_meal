@@ -113,6 +113,8 @@ class _SearchState extends State<Search> {
   }
 
   void _showBottomSheet() {
+    double _bottomSheetHeight = 0.9; // Initial height is 0.9
+
     showModalBottomSheet(
       backgroundColor: Colors.black87,
       context: context,
@@ -123,7 +125,7 @@ class _SearchState extends State<Search> {
             FocusScope.of(context).unfocus();
           },
           child: FractionallySizedBox(
-            heightFactor: 0.9,
+            heightFactor: _bottomSheetHeight, // Dynamically change the height
             child: StatefulBuilder(
               builder: (BuildContext context, StateSetter setModalState) {
                 return Column(
@@ -267,8 +269,9 @@ class _SearchState extends State<Search> {
                                     FocusScope.of(context).unfocus();
                                     setModalState(() {
                                       _pickupController.text = description;
-                                      _pickupSuggestions =
-                                          []; // Clear pickup suggestions
+                                      _pickupSuggestions = [];
+                                      _bottomSheetHeight =
+                                          0.3; // Minimize height
                                     });
                                   },
                                 ),
@@ -295,8 +298,9 @@ class _SearchState extends State<Search> {
                                     FocusScope.of(context).unfocus();
                                     setModalState(() {
                                       _dropoffController.text = description;
-                                      _dropoffSuggestions =
-                                          []; // Clear dropoff suggestions
+                                      _dropoffSuggestions = [];
+                                      _bottomSheetHeight =
+                                          0.3; // Minimize height
                                     });
                                   },
                                 ),
@@ -315,6 +319,21 @@ class _SearchState extends State<Search> {
         );
       },
     );
+  }
+
+  Future<LatLng> _getLatLngFromPlaceId(String placeId) async {
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_apiKey');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final location = data['result']['geometry']['location'];
+      return LatLng(location['lat'], location['lng']);
+    } else {
+      throw Exception('Failed to get LatLng from place ID');
+    }
   }
 
   Future<String> _getCurrentAddress(LatLng coordinates) async {
