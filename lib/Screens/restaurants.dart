@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:shimmer/shimmer.dart';
 import 'package:toastification/toastification.dart';
 
 class Restaurants extends StatefulWidget {
@@ -10,6 +13,64 @@ class Restaurants extends StatefulWidget {
 }
 
 class _RestaurantsState extends State<Restaurants> {
+  List<dynamic> restaurants = [];
+  List<dynamic> filteredRestaurants = [];
+  bool isLoading = true;
+  String searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchRestaurants();
+  }
+
+  Future<void> fetchRestaurants() async {
+    final db = await mongo.Db.create(
+        "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Res?retryWrites=true&w=majority&appName=wm");
+
+    await db.open();
+    final restaurantCollection = db.collection('Restaurants');
+
+    try {
+      final List<dynamic> fetchedRestaurants =
+          await restaurantCollection.find().toList();
+      setState(() {
+        restaurants = fetchedRestaurants;
+        filteredRestaurants = restaurants; // Initialize the filtered list
+        isLoading = false;
+      });
+    } catch (e) {
+      print(e);
+      setState(() {
+        isLoading = false;
+      });
+      toastification.show(
+        alignment: Alignment.bottomCenter,
+        context: context,
+        title: Text("Error fetching restaurants. Please try again."),
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        autoCloseDuration: const Duration(seconds: 2),
+      );
+    } finally {
+      await db.close();
+    }
+  }
+
+  void filterRestaurants(String query) {
+    setState(() {
+      searchQuery = query;
+      if (searchQuery.isEmpty) {
+        filteredRestaurants = restaurants; // Show all if search is cleared
+      } else {
+        filteredRestaurants = restaurants
+            .where((restaurant) =>
+                restaurant['name'].toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,89 +79,116 @@ class _RestaurantsState extends State<Restaurants> {
         elevation: 2,
         surfaceTintColor: Colors.white,
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black87,
         title: Text(
           "Search for dishes & restaurants",
           style: TextStyle(
-              fontSize: 18, fontFamily: "Raleway", fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 18,
+              fontFamily: "Raleway",
+              fontWeight: FontWeight.bold),
         ),
       ),
-      body: Center(
-        child: Column(children: [
-          Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Container(
-              height: 50,
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(10)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 10, right: 10),
-                        child: TextField(
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Raleway"),
-                          cursorColor: Colors.black87,
-                          decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Search for 'Tacos' .....",
-                              hintStyle: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: "Raleway")),
+      body: isLoading
+          ? Center(
+              child: Lottie.asset(
+                'assets/res_load.json',
+                width: 300,
+                height: 300,
+              ),
+            )
+          : Column(children: [
+              Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 10, right: 10),
+                          child: TextField(
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: "Raleway"),
+                            cursorColor: Colors.black87,
+                            decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: "Search for 'Tacos' .....",
+                                hintStyle: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: "Raleway")),
+                            onChanged: filterRestaurants, // Search filter logic
+                          ),
                         ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            // Clear search query and reset restaurant list
+                            setState(() {
+                              searchQuery = '';
+                              filteredRestaurants = restaurants;
+                            });
+                          },
+                          child: Icon(Icons.close),
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 30,
+                        color: Colors.grey,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Icon(
+                          Icons.mic,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Icon(Icons.close),
-                  ),
-                  // Vertical Divider
-                  Container(
-                    width: 1, // Fixed width for vertical divider
-                    height: 30, // Height to match the icon size
-                    color: Colors.grey, // Color of the divider
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Icon(
-                      Icons.mic,
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              physics: ClampingScrollPhysics(),
-              children: [
-                restaurantCard("Domino's Pizza", "Pizzas, Italian, Pastas",
-                    "Selaiyur", "assets/icons/dominos.jpeg", 4.3, 12),
-                restaurantCard("KFC", "Fried Chicken, Zinger, Wings",
-                    "Kelambakkam", "assets/icons/kfc.jpeg", 4.1, 10),
-                restaurantCard("Taco Bell", "Meals, Burritos, Quesadilla",
-                    "Velachery", "assets/icons/taco.jpg", 4.5, 15),
-                restaurantCard("Taco Bell", "Meals, Burritos, Quesadilla",
-                    "Velachery", "assets/icons/taco.jpg", 4.5, 15),
-                // Add more restaurant cards as needed
-              ],
-            ),
-          ),
-        ]),
-      ),
+              Expanded(
+                child: filteredRestaurants.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No restaurants found",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: filteredRestaurants.length,
+                        itemBuilder: (context, index) {
+                          final restaurant = filteredRestaurants[index];
+                          return restaurantCard(
+                            restaurant['name'],
+                            restaurant['location']['address'],
+                            restaurant['logo'],
+                            restaurant['ratings']['rating'],
+                            restaurant['ratings']['number_of_reviews'],
+                          );
+                        },
+                      ),
+              ),
+            ]),
     );
   }
 
-  Widget restaurantCard(String name, String description, String location,
-      String imagePath, double rating, int reviews) {
+  Widget restaurantCard(String name, String location, String imagePath,
+      dynamic rating, int reviews) {
+    double finalRating = rating is int ? rating.toDouble() : rating;
+
     return Padding(
       padding: EdgeInsets.all(20.0),
       child: GestureDetector(
@@ -109,7 +197,7 @@ class _RestaurantsState extends State<Restaurants> {
           toastification.show(
             alignment: Alignment.bottomCenter,
             context: context,
-            title: Text("Currently "),
+            title: Text("$name selected"),
             type: ToastificationType.success,
             style: ToastificationStyle.flatColored,
             showProgressBar: false,
@@ -121,16 +209,35 @@ class _RestaurantsState extends State<Restaurants> {
           child: Row(
             children: [
               Stack(children: [
+                Positioned.fill(
+                  child: Container(
+                    width: 150,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.white,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 Container(
                   width: 150,
                   height: 180,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      imagePath,
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        imagePath,
+                        fit: BoxFit.cover,
+                      )),
                 ),
                 Container(
                   height: 180,
@@ -171,24 +278,19 @@ class _RestaurantsState extends State<Restaurants> {
                           ),
                           SizedBox(width: 5),
                           Text(
-                            "$rating",
+                            "$finalRating",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           SizedBox(width: 5),
                           Text(
-                            "($reviews.k+)",
+                            "($reviews reviews)",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        description,
-                        style: TextStyle(color: Colors.black87),
                       ),
                       SizedBox(height: 5),
                       Text(
