@@ -10,6 +10,8 @@ import 'package:toastification/toastification.dart';
 import 'package:wheel_and_meal/Screens/dest_search.dart';
 import 'package:wheel_and_meal/Screens/start_search.dart';
 
+import 'bookride.dart';
+
 class Rider extends StatefulWidget {
   final LatLng selectedLocation;
   final String pickupAddress;
@@ -493,8 +495,8 @@ class _RiderState extends State<Rider> {
               right: 50,
               child: GestureDetector(
                 onTap: () {
-                  // Navigator.push(context,
-                  //     MaterialPageRoute(builder: (context) => Bookride()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Bookride()));
                   toastification.show(
                     alignment: Alignment.bottomCenter,
                     context:

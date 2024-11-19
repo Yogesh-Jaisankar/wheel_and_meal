@@ -29,7 +29,7 @@ class _RestaurantsState extends State<Restaurants> {
         "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Res?retryWrites=true&w=majority&appName=wm");
 
     await db.open();
-    final restaurantCollection = db.collection('Restaurants');
+    final restaurantCollection = db.collection('restaurants');
 
     try {
       final List<dynamic> fetchedRestaurants =

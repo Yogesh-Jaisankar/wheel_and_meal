@@ -48,6 +48,15 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
       isLoading = false; // Stop loading once result is received
     });
     debugPrint("Phone auth response: $result");
+    toastification.show(
+      alignment: Alignment.bottomCenter,
+      context: context,
+      title: Text("OTP has bee sent to ${"+91-" + phoneController.text}"),
+      type: ToastificationType.success,
+      style: ToastificationStyle.flatColored,
+      showProgressBar: false,
+      autoCloseDuration: const Duration(seconds: 5),
+    );
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -98,6 +107,15 @@ class _PhoneInputPageState extends State<PhoneInputPage> {
       await _otplessFlutterPlugin.startHeadless(onHeadlessResult, arg);
     } catch (e) {
       debugPrint("Error in phone authentication: $e");
+      toastification.show(
+        alignment: Alignment.topLeft,
+        context: context,
+        title: Text("Error in phone authentication: $e"),
+        type: ToastificationType.warning,
+        style: ToastificationStyle.flatColored,
+        showProgressBar: false,
+        autoCloseDuration: const Duration(seconds: 2),
+      );
       setState(() {
         isLoading = false; // Stop loading if error occurs
       });

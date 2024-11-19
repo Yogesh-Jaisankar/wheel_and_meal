@@ -388,11 +388,10 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             ),
           ),
           if (isLoading)
-            Center(
-              child: Lottie.asset(
-                'assets/otp.json', // Path to your Lottie file
-                width: 200,
-                height: 200,
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: Lottie.asset("assets/otp.json", height: 100, width: 100),
               ),
             ),
         ],
