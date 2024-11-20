@@ -497,23 +497,6 @@ class _RiderState extends State<Rider> {
               right: 50,
               child: GestureDetector(
                 onTap: () async {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => Bookride(
-                                selectedLocation: widget.selectedLocation,
-                                dropLOcation: widget.dropLOcation,
-                              )));
-                  // toastification.show(
-                  //   alignment: Alignment.bottomCenter,
-                  //   context:
-                  //       context, // optional if you use ToastificationWrapper
-                  //   title: Text('To be imlemented!'),
-                  //   type: ToastificationType.warning,
-                  //   showProgressBar: false,
-                  //   autoCloseDuration: const Duration(seconds: 2),
-                  // );
-
                   try {
                     final customerId =
                         await _fetchCustomerId(); // Fetch the customer's ID (phone number)
@@ -541,6 +524,7 @@ class _RiderState extends State<Rider> {
                               builder: (context) => Bookride(
                                     selectedLocation: widget.selectedLocation,
                                     dropLOcation: widget.dropLOcation,
+                                    rideRequestId: rideId as String,
                                   )));
                     } else {
                       toastification.show(
