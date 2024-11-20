@@ -6,6 +6,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:lottie/lottie.dart' as Lot;
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
 import 'package:wheel_and_meal/Screens/dest_search.dart';
 import 'package:wheel_and_meal/Screens/start_search.dart';
@@ -494,18 +496,72 @@ class _RiderState extends State<Rider> {
               left: 50,
               right: 50,
               child: GestureDetector(
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Bookride()));
-                  toastification.show(
-                    alignment: Alignment.bottomCenter,
-                    context:
-                        context, // optional if you use ToastificationWrapper
-                    title: Text('To be imlemented!'),
-                    type: ToastificationType.warning,
-                    showProgressBar: false,
-                    autoCloseDuration: const Duration(seconds: 2),
-                  );
+                onTap: () async {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Bookride(
+                                selectedLocation: widget.selectedLocation,
+                                dropLOcation: widget.dropLOcation,
+                              )));
+                  // toastification.show(
+                  //   alignment: Alignment.bottomCenter,
+                  //   context:
+                  //       context, // optional if you use ToastificationWrapper
+                  //   title: Text('To be imlemented!'),
+                  //   type: ToastificationType.warning,
+                  //   showProgressBar: false,
+                  //   autoCloseDuration: const Duration(seconds: 2),
+                  // );
+
+                  try {
+                    final customerId =
+                        await _fetchCustomerId(); // Fetch the customer's ID (phone number)
+                    if (customerId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Customer ID not found.")),
+                      );
+                      return;
+                    }
+
+                    final rideId = await createRideRequest(customerId);
+
+                    if (rideId != null) {
+                      toastification.show(
+                        alignment: Alignment.bottomCenter,
+                        context: context,
+                        title: Text('Ride request created!'),
+                        type: ToastificationType.success,
+                        showProgressBar: false,
+                        autoCloseDuration: const Duration(seconds: 2),
+                      );
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Bookride(
+                                    selectedLocation: widget.selectedLocation,
+                                    dropLOcation: widget.dropLOcation,
+                                  )));
+                    } else {
+                      toastification.show(
+                        alignment: Alignment.bottomCenter,
+                        context: context,
+                        title: Text('Failed to create ride request.'),
+                        type: ToastificationType.error,
+                        showProgressBar: false,
+                        autoCloseDuration: const Duration(seconds: 2),
+                      );
+                    }
+                  } catch (e) {
+                    toastification.show(
+                      alignment: Alignment.bottomCenter,
+                      context: context,
+                      title: Text('Error: $e'),
+                      type: ToastificationType.error,
+                      showProgressBar: false,
+                      autoCloseDuration: const Duration(seconds: 2),
+                    );
+                  }
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(8),
@@ -555,6 +611,79 @@ class _RiderState extends State<Rider> {
       _mapController.animateCamera(
         CameraUpdate.newLatLngZoom(_currentLocation!, 14.0),
       );
+    }
+  }
+
+  Future<Object?> createRideRequest(String customerId) async {
+    var db = await mongo.Db.create(
+        "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=wm");
+    await db.open();
+    var collection = db.collection('ride_requests');
+
+    try {
+      final rideRequest = {
+        "_id": mongo.ObjectId().toHexString(),
+        "customer_id": customerId,
+        "pickup_location": {
+          "type": "Point",
+          "coordinates": [
+            widget.selectedLocation.longitude,
+            widget.selectedLocation.latitude
+          ],
+        },
+        "drop_location": {
+          "type": "Point",
+          "coordinates": [
+            widget.dropLOcation.longitude,
+            widget.dropLOcation.latitude
+          ],
+        },
+        "status": "pending",
+        "driver_id": null,
+        "created_at": DateTime.now().toIso8601String(),
+      };
+
+      final result = await collection.insertOne(rideRequest);
+      if (result.isSuccess) {
+        return rideRequest["_id"];
+      } else {
+        throw Exception("Failed to insert ride request.");
+      }
+    } catch (e) {
+      print("Error creating ride request: $e");
+      return null;
+    } finally {
+      await db.close();
+    }
+  }
+
+  Future<String?> _fetchCustomerId() async {
+    // Fetch customer phone number from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final customerPhoneNumber =
+        prefs.getString('user_id'); // Key for stored user ID
+
+    if (customerPhoneNumber == null) {
+      print("Customer phone number not found in SharedPreferences.");
+      return null;
+    }
+
+    // MongoDB connection and query
+    var db = await mongo.Db.create(
+        "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Users?retryWrites=true&w=majority&appName=wm");
+    await db.open();
+    var collection = db.collection('users');
+
+    try {
+      var user = await collection.findOne({
+        '_id': customerPhoneNumber
+      }); // Use the fetched customer phone number
+      return user?['_id'];
+    } catch (e) {
+      print("Error fetching customer ID: $e");
+      return null;
+    } finally {
+      await db.close();
     }
   }
 }

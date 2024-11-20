@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
 import 'package:wheel_and_meal/Screens/home.dart';
 
@@ -163,6 +164,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       });
 
       if (result.isSuccess) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', widget.phoneNumber);
+
         toastification.show(
           alignment: Alignment.bottomCenter,
           context: context,

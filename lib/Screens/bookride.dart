@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lottie/lottie.dart';
 
 class Bookride extends StatefulWidget {
-  const Bookride({super.key});
+  final LatLng selectedLocation;
+  final LatLng dropLOcation;
+  const Bookride(
+      {super.key, required this.selectedLocation, required this.dropLOcation});
 
   @override
   State<Bookride> createState() => _BookrideState();
