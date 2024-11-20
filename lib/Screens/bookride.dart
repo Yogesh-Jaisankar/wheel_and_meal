@@ -3,6 +3,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 
+import 'driver_details.dart';
+
 class Bookride extends StatefulWidget {
   final LatLng selectedLocation;
   final LatLng dropLOcation;
@@ -88,27 +90,6 @@ class _BookrideState extends State<Bookride> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class DriverDetailsScreen extends StatelessWidget {
-  final String driverId;
-
-  const DriverDetailsScreen({super.key, required this.driverId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Driver Details"),
-      ),
-      body: Center(
-        child: Text(
-          "Driver ID: $driverId",
-          style: const TextStyle(fontSize: 18),
-        ),
       ),
     );
   }
