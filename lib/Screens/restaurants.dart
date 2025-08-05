@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
-import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:shimmer/shimmer.dart';
-import 'package:toastification/toastification.dart';
+
+import 'RestaurantMenu.dart';
 
 class Restaurants extends StatefulWidget {
   const Restaurants({super.key});
@@ -24,37 +23,63 @@ class _RestaurantsState extends State<Restaurants> {
     fetchRestaurants();
   }
 
+  // Future<void> fetchRestaurants() async {
+  //   final db = await mongo.Db.create(
+  //       "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Res?retryWrites=true&w=majority&appName=wm");
+  //
+  //   await db.open();
+  //   final restaurantCollection = db.collection('restaurants');
+  //
+  //   try {
+  //     final List<dynamic> fetchedRestaurants =
+  //         await restaurantCollection.find().toList();
+  //     setState(() {
+  //       restaurants = fetchedRestaurants;
+  //       filteredRestaurants = restaurants; // Initialize the filtered list
+  //       isLoading = false;
+  //     });
+  //   } catch (e) {
+  //     print(e);
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //     toastification.show(
+  //       alignment: Alignment.bottomCenter,
+  //       context: context,
+  //       title: Text("Error fetching restaurants. Please try again."),
+  //       type: ToastificationType.error,
+  //       style: ToastificationStyle.flatColored,
+  //       autoCloseDuration: const Duration(seconds: 2),
+  //     );
+  //   } finally {
+  //     await db.close();
+  //   }
+  // }
+
   Future<void> fetchRestaurants() async {
-    final db = await mongo.Db.create(
-        "mongodb+srv://wm:7806@wm.4lglk.mongodb.net/Res?retryWrites=true&w=majority&appName=wm");
+    // Hardcoded restaurant data for now
+    List<dynamic> fetchedRestaurants = [
+      // {
+      //   'name': 'Taco Bell',
+      //   'location': {'address': '123 Taco St,Chennai'},
+      //   'logo':
+      //       'https://www.sunwaypyramid.com/static/shops/b8a8049532793c15d3809b7e04d4d276/w768.png',
+      //   'ratings': {'rating': 4.5, 'number_of_reviews': 100},
+      // },
+      {
+        'name': 'Pizza Hut',
+        'location': {'address': '456 Pizza Ave, Kelambakkam'},
+        'logo':
+            'https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_366/RX_THUMBNAIL/IMAGES/VENDOR/2024/7/16/060c5c8e-6b92-43bf-b05a-7cdd24f2a25b_16227.jpg',
+        'ratings': {'rating': 4.0, 'number_of_reviews': 200},
+      },
+    ];
 
-    await db.open();
-    final restaurantCollection = db.collection('restaurants');
-
-    try {
-      final List<dynamic> fetchedRestaurants =
-          await restaurantCollection.find().toList();
-      setState(() {
-        restaurants = fetchedRestaurants;
-        filteredRestaurants = restaurants; // Initialize the filtered list
-        isLoading = false;
-      });
-    } catch (e) {
-      print(e);
-      setState(() {
-        isLoading = false;
-      });
-      toastification.show(
-        alignment: Alignment.bottomCenter,
-        context: context,
-        title: Text("Error fetching restaurants. Please try again."),
-        type: ToastificationType.error,
-        style: ToastificationStyle.flatColored,
-        autoCloseDuration: const Duration(seconds: 2),
-      );
-    } finally {
-      await db.close();
-    }
+    setState(() {
+      restaurants = fetchedRestaurants;
+      filteredRestaurants = restaurants; // Initialize the filtered list
+      isLoading = false;
+    });
   }
 
   void filterRestaurants(String query) {
@@ -193,15 +218,35 @@ class _RestaurantsState extends State<Restaurants> {
       padding: EdgeInsets.all(20.0),
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.heavyImpact();
-          toastification.show(
-            alignment: Alignment.bottomCenter,
-            context: context,
-            title: Text("$name selected"),
-            type: ToastificationType.success,
-            style: ToastificationStyle.flatColored,
-            showProgressBar: false,
-            autoCloseDuration: const Duration(seconds: 2),
+          // Define hardcoded menu items for the restaurant
+          List<Map<String, String>> menuItems = [
+            {
+              'name': 'Taco Supreme',
+              'description':
+                  'A delicious taco with beef, cheese, and sour cream.',
+              'price': '350',
+              'image':
+                  'https://tacobell.com.my/wp-content/uploads/2020/09/2-Taco-Supreme.jpg',
+            },
+            {
+              'name': 'Pizza Margarita',
+              'description':
+                  'Classic pizza with tomato sauce, cheese, and basil.',
+              'price': '500',
+              'image':
+                  'https://www.mecooks.com/wp-content/uploads/2022/03/IMGL1725-min-scaled.jpg',
+            },
+          ];
+
+          // Navigate to the restaurant menu page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RestaurantMenu(
+                restaurantName: name,
+                menuItems: menuItems,
+              ),
+            ),
           );
         },
         child: Container(

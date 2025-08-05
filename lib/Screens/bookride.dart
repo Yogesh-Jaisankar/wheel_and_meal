@@ -23,6 +23,7 @@ class Bookride extends StatefulWidget {
 
 class _BookrideState extends State<Bookride> {
   bool isPolling = true;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -52,6 +53,7 @@ class _BookrideState extends State<Bookride> {
             MaterialPageRoute(
               builder: (context) => DriverDetailsScreen(
                 driverId: rideRequest["driver_id"],
+                requestId: widget.rideRequestId,
               ),
             ),
           );

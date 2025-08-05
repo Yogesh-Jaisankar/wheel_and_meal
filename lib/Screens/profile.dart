@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:toastification/toastification.dart';
 import 'package:wheel_and_meal/Screens/Onboard.dart';
 import 'package:wheel_and_meal/Screens/edituserdetails.dart';
 
@@ -189,52 +188,52 @@ class _ProfileState extends State<Profile> {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    toastification.show(
-                      alignment: Alignment.bottomCenter,
-                      context: context,
-                      title: Text('To be implemented!'),
-                      type: ToastificationType.warning,
-                      showProgressBar: false,
-                      autoCloseDuration: const Duration(seconds: 2),
-                    );
-                  },
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.electric_bike,
-                      color: Colors.black87,
-                      size: 30,
-                    ),
-                    title: Text(
-                      "Rides",
-                      style: TextStyle(color: Colors.black87),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    toastification.show(
-                      alignment: Alignment.bottomCenter,
-                      context: context,
-                      title: Text('To be implemented!'),
-                      type: ToastificationType.warning,
-                      showProgressBar: false,
-                      autoCloseDuration: const Duration(seconds: 2),
-                    );
-                  },
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.shopping_basket_rounded,
-                      color: Colors.black87,
-                      size: 30,
-                    ),
-                    title: Text(
-                      "Orders",
-                      style: TextStyle(color: Colors.black87),
-                    ),
-                  ),
-                ),
+                // GestureDetector(
+                //   onTap: () {
+                //     toastification.show(
+                //       alignment: Alignment.bottomCenter,
+                //       context: context,
+                //       title: Text('To be implemented!'),
+                //       type: ToastificationType.warning,
+                //       showProgressBar: false,
+                //       autoCloseDuration: const Duration(seconds: 2),
+                //     );
+                //   },
+                //   child: ListTile(
+                //     leading: Icon(
+                //       Icons.electric_bike,
+                //       color: Colors.black87,
+                //       size: 30,
+                //     ),
+                //     title: Text(
+                //       "Rides",
+                //       style: TextStyle(color: Colors.black87),
+                //     ),
+                //   ),
+                // ),
+                // GestureDetector(
+                //   onTap: () {
+                //     toastification.show(
+                //       alignment: Alignment.bottomCenter,
+                //       context: context,
+                //       title: Text('To be implemented!'),
+                //       type: ToastificationType.warning,
+                //       showProgressBar: false,
+                //       autoCloseDuration: const Duration(seconds: 2),
+                //     );
+                //   },
+                //   child: ListTile(
+                //     leading: Icon(
+                //       Icons.shopping_basket_rounded,
+                //       color: Colors.black87,
+                //       size: 30,
+                //     ),
+                //     title: Text(
+                //       "Orders",
+                //       style: TextStyle(color: Colors.black87),
+                //     ),
+                //   ),
+                // ),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(

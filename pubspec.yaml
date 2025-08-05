@@ -50,7 +50,7 @@ dependencies:
   bson: ^5.0.4
   toastification: ^2.2.0
   shimmer: ^3.0.0
-  google_maps_webservice: ^0.0.20
+
 
 dev_dependencies:
   flutter_test:

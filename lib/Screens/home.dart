@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wheel_and_meal/Screens/activity.dart';
-import 'package:wheel_and_meal/Screens/grocery.dart';
 import 'package:wheel_and_meal/Screens/profile.dart';
 import 'package:wheel_and_meal/Screens/rider.dart';
 
@@ -21,7 +20,7 @@ class _HomeState extends State<Home> {
   final List<IconData> icons = [
     Icons.two_wheeler,
     Icons.local_restaurant,
-    Icons.shopping_basket,
+    //Icons.shopping_basket,
     Icons.receipt_long,
     Icons.person_outline_sharp,
   ];
@@ -34,7 +33,7 @@ class _HomeState extends State<Home> {
       dropLOcation: LatLng(1, 1),
     ),
     Restaurants(),
-    Grocery(),
+    //Grocery(),
     Activity(),
     Profile(),
   ];
